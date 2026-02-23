@@ -27,6 +27,55 @@
         body { background-color: #000; height: 100dvh; display: flex; justify-content: center; }
         #app { width: 100%; max-width: 500px; background: white; height: 100dvh; display: flex; flex-direction: column; position: relative; overflow: hidden; }
 
+.sdui-action-sheet {
+    text-align: center;
+}
+.sdui-action-sheet .sheet-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    position: relative;
+}
+.sdui-action-sheet .close-btn {
+    position: absolute;
+    right: 0;
+    top: -2px;
+    width: 28px;
+    height: 28px;
+    background: var(--gray-bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+    font-size: 14px;
+    cursor: pointer;
+}
+.sdui-action-grid {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+.sdui-action-btn {
+    flex: 1;
+    background: var(--sdui-red-light);
+    color: var(--sdui-red);
+    border: none;
+    border-radius: 12px;
+    padding: 20px 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+.sdui-action-btn i {
+    font-size: 28px;
+}
+
+
         .screen { display: none; flex-direction: column; height: 100%; width: 100%; background: white; }
         .screen.active { display: flex; }
 
@@ -163,13 +212,23 @@
         <div class="menu-item danger" onclick="logout()"><i class="fa-solid fa-power-off"></i> Ausloggen</div>
     </div>
 
-    <div id="sheet-actions" class="sheet">
-        <div class="sheet-title">Medien senden <i class="fa fa-times" style="float:right; color:#ccc; cursor:pointer;" onclick="closeAll()"></i></div>
-        <div style="display: flex; gap: 15px;">
-            <button style="flex: 1; padding: 15px; border: 1px solid var(--sdui-red-light); background: white; color: var(--sdui-red); border-radius: 10px; cursor:pointer;" onclick="triggerFile('chat-image')"><i class="fa-regular fa-image" style="display:block; font-size:24px; margin-bottom:5px;"></i>Bild senden</button>
-        </div>
-        <input type="file" id="chat-image" hidden accept="image/*" onchange="uploadChatImg(this)">
+<div id="sheet-actions" class="sheet sdui-action-sheet">
+    <div class="sheet-title">
+        Aktion auswählen
+        <div class="close-btn" onclick="closeAll()"><i class="fa fa-times"></i></div>
     </div>
+    <div class="sdui-action-grid">
+        <button class="sdui-action-btn" onclick="alert('Kamera-Funktion folgt!')">
+            <i class="fa-solid fa-camera"></i>
+            Kamera
+        </button>
+        <button class="sdui-action-btn" onclick="triggerFile('chat-image')">
+            <i class="fa-regular fa-image"></i>
+            Medien
+        </button>
+    </div>
+    <input type="file" id="chat-image" hidden accept="image/*" onchange="uploadChatImg(this)">
+</div>
 </div>
 
 <script>
