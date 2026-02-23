@@ -3,152 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SFS Chat - Projekt 2026</title>
+    <title>Chat Website</title>
     
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
         :root {
-            --primary: #c2185b; /* Das Weinrot/Pink aus deinen Screens */
-            --bg: #ffffff;
-            --chat-bg: #f2f2f2;
-            --text: #333;
-            --blue-verify: #00a2ff;
+            --accent-pink: #e91e63;
+            --dark-header: #212121;
+            --bg-color: #f0f2f5;
+            --white: #ffffff;
+            --text-gray: #757575;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: #eee; display: flex; justify-content: center; height: 100vh; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
-        #app-container {
+        body { background-color: var(--bg-color); display: flex; justify-content: center; height: 100vh; }
+
+        #phone-wrapper {
             width: 100%;
-            max-width: 450px;
-            background: var(--bg);
-            height: 100%;
+            max-width: 480px;
+            background: var(--white);
             display: flex;
             flex-direction: column;
             position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.2);
         }
 
-        /* Screens */
+        /* --- SCREENS --- */
         .screen { display: none; flex-direction: column; height: 100%; width: 100%; }
         .screen.active { display: flex; }
 
-        /* Login & Profile Setup */
-        .auth-ui { padding: 40px 20px; text-align: center; }
-        .auth-ui h1 { color: var(--primary); margin-bottom: 20px; font-size: 32px; }
-        input[type="text"], input[type="email"], input[type="password"] {
-            width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px;
-        }
-        .btn {
-            width: 100%; padding: 14px; border: none; border-radius: 25px; 
-            font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 16px; margin-top: 10px;
-        }
-        .btn-main { background: var(--primary); color: white; }
-        .btn-google { background: #fff; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        /* --- LOGIN STYLE --- */
+        .login-screen { padding: 40px 20px; text-align: center; justify-content: center; }
+        .login-screen h1 { color: var(--accent-pink); font-size: 35px; margin-bottom: 30px; }
+        .input-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; outline: none; }
+        .main-btn { width: 100%; padding: 15px; border: none; border-radius: 30px; background: var(--accent-pink); color: white; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .google-btn { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 30px; background: white; color: #555; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 15px; cursor: pointer; }
 
-        /* Header */
-        header { 
-            padding: 15px; display: flex; align-items: center; justify-content: space-between; 
-            border-bottom: 1px solid #eee; background: #fff; z-index: 10;
-        }
-        .header-left { display: flex; align-items: center; gap: 15px; }
-        .header-title { font-size: 20px; font-weight: bold; color: #000; }
+        /* --- HEADER --- */
+        header { background: var(--dark-header); color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; }
+        .header-title { font-size: 20px; font-weight: bold; }
+        .header-icons { display: flex; gap: 20px; font-size: 20px; }
+        .header-icons i { cursor: pointer; color: var(--accent-pink); }
 
-        /* Chat List */
-        .list-container { flex: 1; overflow-y: auto; }
-        .list-item { 
-            display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #f5f5f5; 
-            cursor: pointer; transition: 0.2s;
-        }
-        .list-item:hover { background: #fafafa; }
-        .avatar { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; background: #ddd; margin-right: 15px; }
-        .item-info { flex: 1; }
-        .item-name { font-weight: bold; display: flex; align-items: center; gap: 5px; }
-        .verify-badge { width: 16px; height: 16px; }
+        /* --- CHAT LIST --- */
+        .chat-list { flex: 1; overflow-y: auto; }
+        .chat-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .avatar { width: 55px; height: 55px; border-radius: 50%; object-fit: cover; background: #ccc; margin-right: 15px; }
+        .chat-details { flex: 1; }
+        .chat-name { font-weight: bold; font-size: 17px; display: flex; align-items: center; gap: 5px; }
+        .chat-last-msg { color: var(--text-gray); font-size: 14px; margin-top: 3px; }
+        .verify-badge { width: 18px; height: 18px; }
 
-        /* Messages */
-        #message-area { flex: 1; overflow-y: auto; padding: 15px; background: #fff; display: flex; flex-direction: column; }
-        .msg-bubble { 
-            max-width: 80%; padding: 10px 14px; border-radius: 18px; margin-bottom: 10px; 
-            position: relative; line-height: 1.4; font-size: 15px;
-        }
-        .msg-bubble.sent { align-self: flex-end; background: #fce4ec; color: #000; border-bottom-right-radius: 4px; }
-        .msg-bubble.received { align-self: flex-start; background: #f0f0f0; border-bottom-left-radius: 4px; }
-        .msg-bubble img { max-width: 100%; border-radius: 10px; display: block; margin-top: 5px; }
-        .sender-name { font-size: 11px; font-weight: bold; margin-bottom: 3px; display: flex; align-items: center; gap: 3px; }
+        /* --- CHAT VIEW --- */
+        .message-container { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; background: #fff; }
+        .msg { max-width: 75%; padding: 10px 15px; border-radius: 20px; margin-bottom: 10px; position: relative; font-size: 15px; }
+        .msg.sent { align-self: flex-end; background: var(--accent-pink); color: white; border-bottom-right-radius: 2px; }
+        .msg.received { align-self: flex-start; background: #f1f1f1; color: #333; border-bottom-left-radius: 2px; }
+        .msg img { max-width: 100%; border-radius: 10px; margin-top: 8px; }
+        .msg-info { font-size: 11px; font-weight: bold; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; }
 
-        /* Input */
-        .input-bar { padding: 10px; display: flex; align-items: center; gap: 10px; background: #fff; border-top: 1px solid #eee; }
-        .icon-btn { font-size: 22px; color: var(--primary); cursor: pointer; }
-        #chat-input { flex: 1; border: none; padding: 10px; background: #f5f5f5; border-radius: 20px; outline: none; }
+        .chat-input-area { padding: 10px; border-top: 1px solid #eee; display: flex; align-items: center; gap: 10px; }
+        .chat-input-area input { flex: 1; background: #f0f0f0; border: none; padding: 12px; border-radius: 25px; }
+        .icon-btn { color: var(--accent-pink); font-size: 24px; cursor: pointer; }
 
-        /* Modals */
-        .overlay { 
-            position: absolute; top:0; left:0; width:100%; height:100%; 
-            background: rgba(0,0,0,0.4); display: none; z-index: 20; 
-        }
-        .bottom-modal { 
-            position: absolute; bottom: -100%; left: 0; width: 100%; 
-            background: #fff; border-radius: 20px 20px 0 0; transition: 0.4s; z-index: 30; padding: 20px;
-        }
-        .bottom-modal.open { bottom: 0; }
-        .menu-item { padding: 15px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        /* --- PROFILE / ACCOUNT SETTINGS --- */
+        .profile-screen { padding: 20px; text-align: center; }
+        .profile-img-upload { position: relative; width: 120px; height: 120px; margin: 0 auto 20px; }
+        .profile-img-upload img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent-pink); }
+        .upload-overlay { position: absolute; bottom: 0; right: 0; background: var(--accent-pink); color: white; width: 35px; height: 35px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* Loading */
-        #loading-screen { 
-            position: fixed; top:0; left:0; width:100%; height:100%; background: white; 
-            display: flex; justify-content: center; align-items: center; z-index: 999; 
-        }
+        /* --- MODALS --- */
+        .modal-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display:none; z-index: 100; }
+        .bottom-sheet { position: absolute; bottom: -100%; left:0; width:100%; background: white; border-top-left-radius: 20px; border-top-right-radius: 20px; transition: 0.3s; z-index: 101; padding: 20px; }
+        .bottom-sheet.open { bottom: 0; }
+        .sheet-item { padding: 15px 0; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; font-size: 18px; cursor: pointer; }
+
     </style>
 </head>
 <body>
 
-<div id="loading-screen"><p>Lade SFS Chats...</p></div>
-
-<div id="app-container">
+<div id="phone-wrapper">
     
-    <div id="screen-login" class="screen auth-ui">
-        <h1>SFS Chats</h1>
-        <p>Bitte anmelden um fortzufahren</p>
-        <input type="email" id="login-email" placeholder="E-Mail">
-        <input type="password" id="login-pass" placeholder="Passwort">
-        <button class="btn btn-main" onclick="handleAuth()">Anmelden / Registrieren</button>
-        <button class="btn btn-google" onclick="handleGoogleAuth()">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa/google.svg" width="18"> Mit Google anmelden
+    <div id="screen-login" class="screen login-screen active">
+        <h1>Anmelden</h1>
+        <div class="input-group"><input type="email" id="email" placeholder="E-Mail"></div>
+        <div class="input-group"><input type="password" id="password" placeholder="Passwort"></div>
+        <button class="main-btn" onclick="authEmail()">Weiter</button>
+        <button class="google-btn" onclick="authGoogle()">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa/google.svg" width="20"> Mit Google anmelden
         </button>
     </div>
 
-    <div id="screen-setup" class="screen auth-ui">
-        <h1>Dein Profil</h1>
-        <p>Wie sollen dich andere sehen?</p>
-        <div style="margin: 20px 0;">
-            <img id="setup-preview" class="avatar" src="https://via.placeholder.com/150" style="width: 100px; height: 100px;">
-            <input type="file" id="setup-file" hidden accept="image/*" onchange="previewImage(this, 'setup-preview')">
-            <button class="btn" onclick="document.getElementById('setup-file').click()">Bild wählen</button>
+    <div id="screen-profile" class="screen profile-screen">
+        <h2 id="profile-title" style="margin-bottom: 20px;">Profil einrichten</h2>
+        <div class="profile-img-upload">
+            <img id="p-preview" src="https://via.placeholder.com/150">
+            <label for="p-input" class="upload-overlay"><i class="fa fa-camera"></i></label>
+            <input type="file" id="p-input" hidden accept="image/*" onchange="previewProfilePic(this)">
         </div>
-        <input type="text" id="setup-name" placeholder="Anzeigename">
-        <button class="btn btn-main" onclick="saveProfileData()">Profil speichern</button>
+        <input type="text" id="p-name" placeholder="Dein Name" style="margin-bottom: 20px;">
+        <button class="main-btn" onclick="saveUserProfile()">Speichern</button>
+        <button class="google-btn" onclick="showScreen('screen-main')" id="btn-cancel" style="display:none;">Abbrechen</button>
     </div>
 
     <div id="screen-main" class="screen">
         <header>
             <span class="header-title">Chats</span>
-            <div class="header-left">
-                <i class="fa-solid fa-circle-plus icon-btn"></i>
-                <i class="fa-solid fa-bars icon-btn" onclick="openMenu('modal-settings')"></i>
+            <div class="header-icons">
+                <i class="fa-solid fa-circle-plus"></i>
+                <i class="fa-solid fa-bars" onclick="openMenu()"></i>
             </div>
         </header>
-        <div class="list-container">
-            <div class="list-item" onclick="enterGlobalChat()">
+        <div class="chat-list">
+            <div class="chat-item" onclick="startChat('Globaler Chat')">
                 <img src="https://cdn-icons-png.flaticon.com/512/2583/2583157.png" class="avatar">
-                <div class="item-info">
-                    <div class="item-name">Globaler Gruppenchat</div>
-                    <div style="color: #888; font-size: 13px;">Klicke um mit allen zu schreiben...</div>
+                <div class="chat-details">
+                    <div class="chat-name">Globaler Chat</div>
+                    <div class="chat-last-msg">Tippe um beizutreten...</div>
                 </div>
             </div>
         </div>
@@ -156,36 +135,32 @@
 
     <div id="screen-chat" class="screen">
         <header>
-            <div class="header-left">
-                <i class="fa-solid fa-chevron-left icon-btn" onclick="changeScreen('screen-main')"></i>
-                <span class="header-title" id="active-chat-title">Global</span>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <i class="fa fa-chevron-left" onclick="showScreen('screen-main')" style="cursor:pointer"></i>
+                <span id="chat-title" class="header-title">Chat</span>
             </div>
-            <i class="fa-solid fa-info-circle icon-btn"></i>
+            <i class="fa fa-info-circle"></i>
         </header>
-        <div id="message-area"></div>
-        <div class="input-bar">
-            <i class="fa-solid fa-plus icon-btn" onclick="openMenu('modal-media')"></i>
-            <input type="text" id="chat-input" placeholder="Nachricht...">
-            <i class="fa-solid fa-paper-plane icon-btn" onclick="sendChatMessage()"></i>
+        <div id="msg-list" class="message-container"></div>
+        <div class="chat-input-area">
+            <i class="fa fa-plus icon-btn" onclick="triggerImgUpload()"></i>
+            <input type="file" id="chat-img-input" hidden accept="image/*" onchange="sendImage(this)">
+            <input type="text" id="msg-input" placeholder="Nachricht...">
+            <i class="fa fa-paper-plane icon-btn" onclick="sendText()"></i>
         </div>
     </div>
 
-    <div id="overlay" class="overlay" onclick="closeAllModals()"></div>
-
-    <div id="modal-settings" class="bottom-modal">
-        <div class="menu-item" onclick="changeScreen('screen-setup')"><i class="fa-solid fa-user-gear"></i> Account & Einstellungen</div>
-        <div class="menu-item" onclick="handleLogout()" style="color: red;"><i class="fa-solid fa-right-from-bracket"></i> Ausloggen</div>
-    </div>
-
-    <div id="modal-media" class="bottom-modal">
-        <div class="menu-item" onclick="document.getElementById('chat-img-file').click()"><i class="fa-solid fa-image"></i> Medien (Galerie)</div>
-        <input type="file" id="chat-img-file" hidden accept="image/*" onchange="sendImageAsMessage(this)">
+    <div id="overlay" class="modal-overlay" onclick="closeMenu()"></div>
+    <div id="menu-sheet" class="bottom-sheet">
+        <div class="sheet-item" onclick="openEditProfile()"><i class="fa fa-user-circle"></i> Account & Einstellungen</div>
+        <div class="sheet-item" onclick="logout()" style="color:red;"><i class="fa fa-sign-out"></i> Ausloggen</div>
+        <button class="main-btn" onclick="closeMenu()" style="background:#eee; color:#333;">Schließen</button>
     </div>
 
 </div>
 
 <script>
-    // --- FIREBASE INITIALISIERUNG ---
+    // --- FIREBASE KONFIGURATION ---
     const firebaseConfig = {
   apiKey: "AIzaSyBtZhw5zd96zJ5WYArLoMaGbpPjxF_gRUk",
   authDomain: "login-34727.firebaseapp.com",
@@ -199,158 +174,156 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let userProfile = null;
+    let currentUserData = null;
     const VERIFIED_EMAIL = "boxenjob5@gmail.com";
-    const ROBLOX_BADGE = "https://static.wikia.nocookie.net/roblox/images/5/57/Verified_Badge.png";
+    const ROBLOX_VERIFY = "https://static.wikia.nocookie.net/roblox/images/5/57/Verified_Badge.png";
 
-    // --- AUTH FLOW ---
-    auth.onAuthStateChanged(async (user) => {
-        document.getElementById('loading-screen').style.display = 'none';
+    // --- AUTH LOGIK ---
+    auth.onAuthStateChanged(async user => {
         if (user) {
             const doc = await db.collection('users').doc(user.uid).get();
             if (doc.exists) {
-                userProfile = doc.data();
-                changeScreen('screen-main');
+                currentUserData = doc.data();
+                showScreen('screen-main');
             } else {
-                changeScreen('screen-setup');
+                showScreen('screen-profile');
             }
         } else {
-            changeScreen('screen-login');
+            showScreen('screen-login');
         }
     });
 
-    async function handleAuth() {
-        const email = document.getElementById('login-email').value;
-        const pass = document.getElementById('login-pass').value;
-        if(!email || !pass) return alert("Bitte alles ausfüllen!");
-        
+    async function authEmail() {
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('password').value;
         try {
-            await auth.signInWithEmailAndPassword(email, pass);
-        } catch (e) {
-            try {
-                await auth.createUserWithEmailAndPassword(email, pass);
-            } catch (err) { alert(err.message); }
+            await auth.signInWithEmailAndPassword(e, p);
+        } catch (err) {
+            try { await auth.createUserWithEmailAndPassword(e, p); } 
+            catch (e2) { alert(e2.message); }
         }
     }
 
-    async function handleGoogleAuth() {
+    function authGoogle() {
         const provider = new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(provider);
+        auth.signInWithPopup(provider);
     }
 
-    function handleLogout() {
-        auth.signOut();
-        closeAllModals();
+    function logout() { auth.signOut(); closeMenu(); }
+
+    // --- PROFIL LOGIK ---
+    function openEditProfile() {
+        document.getElementById('profile-title').innerText = "Account bearbeiten";
+        document.getElementById('p-name').value = currentUserData.name;
+        document.getElementById('p-preview').src = currentUserData.photo;
+        document.getElementById('btn-cancel').style.display = "block";
+        showScreen('screen-profile');
+        closeMenu();
     }
 
-    // --- PROFILE LOGIC ---
-    async function saveProfileData() {
-        const name = document.getElementById('setup-name').value;
-        const imgElement = document.getElementById('setup-preview');
-        if(!name) return alert("Name fehlt!");
-
-        const data = {
-            name: name,
-            photo: imgElement.src,
-            email: auth.currentUser.email,
-            uid: auth.currentUser.uid
-        };
-
-        await db.collection('users').doc(auth.currentUser.uid).set(data);
-        userProfile = data;
-        changeScreen('screen-main');
-    }
-
-    // --- CHAT LOGIC ---
-    let messageListener = null;
-
-    function enterGlobalChat() {
-        changeScreen('screen-chat');
-        if(messageListener) messageListener(); // Alten Listener stoppen
-
-        messageListener = db.collection('global_messages').orderBy('ts', 'asc').limitToLast(50)
-            .onSnapshot(snap => {
-                const area = document.getElementById('message-area');
-                area.innerHTML = '';
-                snap.forEach(doc => {
-                    const m = doc.data();
-                    const isMe = m.uid === auth.currentUser.uid;
-                    const isVerified = m.email === VERIFIED_EMAIL;
-
-                    const div = document.createElement('div');
-                    div.className = `msg-bubble ${isMe ? 'sent' : 'received'}`;
-                    
-                    let badge = isVerified ? `<img src="${ROBLOX_BADGE}" class="verify-badge">` : '';
-                    
-                    div.innerHTML = `
-                        <div class="sender-name">${m.sender} ${badge}</div>
-                        ${m.text ? `<div>${m.text}</div>` : ''}
-                        ${m.image ? `<img src="${m.image}">` : ''}
-                    `;
-                    area.appendChild(div);
-                });
-                area.scrollTop = area.scrollHeight;
-            });
-    }
-
-    async function sendChatMessage() {
-        const input = document.getElementById('chat-input');
-        if(!input.value.trim()) return;
-
-        await db.collection('global_messages').add({
-            uid: auth.currentUser.uid,
-            sender: userProfile.name,
-            email: auth.currentUser.email,
-            text: input.value,
-            ts: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        input.value = '';
-    }
-
-    async function sendImageAsMessage(input) {
-        if(!input.files[0]) return;
-        const base64 = await toBase64(input.files[0]);
-        
-        await db.collection('global_messages').add({
-            uid: auth.currentUser.uid,
-            sender: userProfile.name,
-            email: auth.currentUser.email,
-            image: base64,
-            ts: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        closeAllModals();
-    }
-
-    // --- HELPERS ---
-    function changeScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    function openMenu(id) {
-        document.getElementById('overlay').style.display = 'block';
-        document.getElementById(id).classList.add('open');
-    }
-
-    function closeAllModals() {
-        document.getElementById('overlay').style.display = 'none';
-        document.querySelectorAll('.bottom-modal').forEach(m => m.classList.remove('open'));
-    }
-
-    function previewImage(input, targetId) {
+    function previewProfilePic(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
-            reader.onload = e => document.getElementById(targetId).src = e.target.result;
+            reader.onload = e => document.getElementById('p-preview').src = e.target.result;
             reader.readAsDataURL(input.files[0]);
         }
     }
 
-    const toBase64 = file => new Promise((resolve, reject) => {
+    async function saveUserProfile() {
+        const name = document.getElementById('p-name').value;
+        const photo = document.getElementById('p-preview').src;
+        if (!name) return alert("Bitte Name angeben");
+
+        const data = {
+            uid: auth.currentUser.uid,
+            name: name,
+            photo: photo,
+            email: auth.currentUser.email
+        };
+        await db.collection('users').doc(auth.currentUser.uid).set(data);
+        currentUserData = data;
+        showScreen('screen-main');
+    }
+
+    // --- CHAT LOGIK ---
+    let chatListener = null;
+
+    function startChat(name) {
+        document.getElementById('chat-title').innerText = name;
+        showScreen('screen-chat');
+        
+        if (chatListener) chatListener();
+        chatListener = db.collection('global_msgs').orderBy('time', 'asc').limitToLast(50)
+            .onSnapshot(snap => {
+                const list = document.getElementById('msg-list');
+                list.innerHTML = '';
+                snap.forEach(doc => {
+                    const m = doc.data();
+                    const isMe = m.senderId === auth.currentUser.uid;
+                    const isVerified = m.email === VERIFIED_EMAIL;
+
+                    const div = document.createElement('div');
+                    div.className = `msg ${isMe ? 'sent' : 'received'}`;
+                    
+                    let badgeHtml = isVerified ? `<img src="${ROBLOX_VERIFY}" class="verify-badge">` : '';
+                    
+                    div.innerHTML = `
+                        <div class="msg-info">${m.senderName} ${badgeHtml}</div>
+                        ${m.text ? `<div>${m.text}</div>` : ''}
+                        ${m.image ? `<img src="${m.image}">` : ''}
+                    `;
+                    list.appendChild(div);
+                });
+                list.scrollTop = list.scrollHeight;
+            });
+    }
+
+    async function sendText() {
+        const input = document.getElementById('msg-input');
+        if (!input.value.trim()) return;
+
+        await db.collection('global_msgs').add({
+            senderId: auth.currentUser.uid,
+            senderName: currentUserData.name,
+            email: auth.currentUser.email,
+            text: input.value,
+            time: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        input.value = '';
+    }
+
+    function triggerImgUpload() { document.getElementById('chat-img-input').click(); }
+
+    async function sendImage(input) {
+        if (!input.files[0]) return;
         const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-    });
+        reader.onload = async (e) => {
+            await db.collection('global_msgs').add({
+                senderId: auth.currentUser.uid,
+                senderName: currentUserData.name,
+                email: auth.currentUser.email,
+                image: e.target.result,
+                time: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+
+    // --- UI UI HELPERS ---
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function openMenu() {
+        document.getElementById('overlay').style.display = 'block';
+        document.getElementById('menu-sheet').classList.add('open');
+    }
+
+    function closeMenu() {
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('menu-sheet').classList.remove('open');
+    }
 </script>
 
 </body>
