@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #e91e63;
+            --bg-light: #f5f5f5;
+            --text-dark: #333;
+            --verify-blue: #00a2ff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+
+        body { background-color: var(--bg-light); display: flex; justify-content: center; height: 100vh; }
+
+        #app { width: 100%; max-width: 500px; background: white; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+
+        /* Auth Screen */
+        .screen { display: none; flex-direction: column; height: 100%; padding: 20px; }
+        .screen.active { display: flex; }
+
+        .auth-container { text-align: center; margin-top: 50px; }
+        .btn { padding: 12px; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; margin: 10px 0; width: 100%; transition: 0.3s; }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-google { background: white; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        input { padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; width: 100%; }
+
+        /* Header */
+        header { padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; }
+        .header-title { font-size: 24px; font-weight: bold; }
+
+        /* Chat List */
+        .chat-list-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #f9f9f9; cursor: pointer; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background: #ddd; margin-right: 15px; object-fit: cover; }
+        .chat-info { flex: 1; }
+        .chat-name { font-weight: bold; display: flex; align-items: center; gap: 4px; }
+        .verify-badge { width: 16px; height: 16px; }
+
+        /* Message Area */
+        #messages { flex: 1; overflow-y: auto; padding: 15px; background: #fff; }
+        .msg { margin-bottom: 15px; max-width: 80%; padding: 10px; border-radius: 15px; position: relative; }
+        .msg.sent { background: var(--primary-color); color: white; align-self: flex-end; margin-left: auto; border-bottom-right-radius: 2px; }
+        .msg.received { background: #f0f0f0; border-bottom-left-radius: 2px; }
+        .msg img { max-width: 100%; border-radius: 10px; margin-top: 5px; }
+
+        /* Input Area */
+        .input-area { padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #eee; }
+        .add-btn { font-size: 24px; color: var(--primary-color); cursor: pointer; }
+
+        /* Modals */
+        .modal { position: absolute; bottom: -100%; left: 0; width: 100%; background: white; transition: 0.3s; padding: 20px; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 100; }
+        .modal.open { bottom: 0; }
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 90; }
+
+        .settings-item { padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <div id="screen-auth" class="screen active">
+        <div class="auth-container">
+            <h1 style="color: var(--primary-color); font-size: 40px;">Chats</h1>
+            <input type="email" id="email" placeholder="E-Mail">
+            <input type="password" id="password" placeholder="Passwort">
+            <button class="btn btn-primary" onclick="login()">Anmelden / Registrieren</button>
+            <button class="btn btn-google" onclick="loginGoogle()">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20"> Mit Google anmelden
+            </button>
+        </div>
+    </div>
+
+    <div id="screen-profile" class="screen">
+        <h2>Profil vervollständigen</h2>
+        <input type="text" id="display-name" placeholder="Dein Name">
+        <p>Profilbild wählen:</p>
+        <input type="file" id="profile-pic-input" accept="image/*">
+        <button class="btn btn-primary" onclick="saveProfile()">Speichern & Starten</button>
+    </div>
+
+    <div id="screen-main" class="screen">
+        <header>
+            <span class="header-title">Chats</span>
+            <div>
+                <i class="fa-solid fa-circle-plus" style="color: var(--primary-color); font-size: 24px; margin-right: 15px;"></i>
+                <i class="fa-solid fa-bars" onclick="toggleSettings()" style="cursor:pointer"></i>
+            </div>
+        </header>
+        <div id="chat-list-container">
+            <div class="chat-list-item" onclick="openGlobalChat()">
+                <img src="https://cdn-icons-png.flaticon.com/512/2583/2583157.png" class="avatar">
+                <div class="chat-info">
+                    <div class="chat-name">Globaler Chat</div>
+                    <div style="font-size: 12px; color: #888;">Schreibe mit allen...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="screen-chat" class="screen">
+        <header>
+            <i class="fa-solid fa-chevron-left" onclick="showScreen('screen-main')"></i>
+            <span id="chat-target-name" class="header-title">Global</span>
+            <i></i>
+        </header>
+        <div id="messages"></div>
+        <div class="input-area">
+            <i class="fa-solid fa-plus add-btn" onclick="openMediaModal()"></i>
+            <input type="text" id="msg-input" placeholder="Neue Nachricht">
+            <i class="fa-solid fa-paper-plane" onclick="sendMessage()" style="color: var(--primary-color); cursor:pointer"></i>
+        </div>
+    </div>
+
+    <div id="modal-settings" class="modal">
+        <h3>Einstellungen</h3>
+        <div class="settings-item" onclick="showScreen('screen-profile')"><i class="fa-solid fa-gear"></i> Account & Einstellungen</div>
+        <div class="settings-item" onclick="logout()" style="color: red;"><i class="fa-solid fa-power-off"></i> Ausloggen</div>
+        <button class="btn" onclick="toggleSettings()">Schließen</button>
+    </div>
+
+    <div id="modal-media" class="modal">
+        <h3>Aktion auswählen</h3>
+        <div style="display: flex; gap: 20px; margin-top: 20px;">
+            <button class="btn btn-google" onclick="triggerFileInput()"><i class="fa-solid fa-image"></i> Medien</button>
+            <input type="file" id="chat-image-input" hidden accept="image/*" onchange="sendImage(this)">
+        </div>
+        <button class="btn" onclick="closeMediaModal()">Abbrechen</button>
+    </div>
+
+    <div id="overlay" class="modal-overlay" onclick="closeModals()"></div>
+</div>
+
+<script>
+    // --- FIREBASE CONFIG ---
+    const firebaseConfig = {
+  apiKey: "AIzaSyBtZhw5zd96zJ5WYArLoMaGbpPjxF_gRUk",
+  authDomain: "login-34727.firebaseapp.com",
+  projectId: "login-34727",
+  storageBucket: "login-34727.firebasestorage.app",
+  messagingSenderId: "721582884449",
+  appId: "1:721582884449:web:9271dcef860f4f76d44c20"
+};
+    
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUser = null;
+    const VERIFIED_EMAIL = "boxenjob5@gmail.com";
+    const ROBLOX_VERIFY_URL = "https://static.wikia.nocookie.net/roblox/images/5/57/Verified_Badge.png"; // Beispiel URL für Roblox Badge
+
+    // --- AUTH LOGIC ---
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            checkProfile();
+        } else {
+            showScreen('screen-auth');
+        }
+    });
+
+    async function login() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
+        try {
+            await auth.signInWithEmailAndPassword(email, pass);
+        } catch (e) {
+            await auth.createUserWithEmailAndPassword(email, pass);
+        }
+    }
+
+    async function loginGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        await auth.signInWithPopup(provider);
+    }
+
+    function logout() {
+        auth.signOut();
+        closeModals();
+    }
+
+    // --- PROFILE LOGIC ---
+    async function checkProfile() {
+        const doc = await db.collection('users').doc(currentUser.uid).get();
+        if (doc.exists) {
+            showScreen('screen-main');
+        } else {
+            showScreen('screen-profile');
+        }
+    }
+
+    async function saveProfile() {
+        const name = document.getElementById('display-name').value;
+        const file = document.getElementById('profile-pic-input').files[0];
+        let photoBase64 = "https://via.placeholder.com/150";
+
+        if (file) {
+            photoBase64 = await toBase64(file);
+        }
+
+        await db.collection('users').doc(currentUser.uid).set({
+            name: name,
+            photo: photoBase64,
+            email: currentUser.email
+        });
+        showScreen('screen-main');
+    }
+
+    // --- CHAT LOGIC ---
+    function openGlobalChat() {
+        showScreen('screen-chat');
+        loadMessages();
+    }
+
+    function loadMessages() {
+        db.collection('messages').orderBy('time', 'asc').onSnapshot(snap => {
+            const container = document.getElementById('messages');
+            container.innerHTML = '';
+            snap.forEach(doc => {
+                const data = doc.data();
+                const isMe = data.uid === currentUser.uid;
+                const isVerified = data.email === VERIFIED_EMAIL;
+                
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `msg ${isMe ? 'sent' : 'received'}`;
+                
+                let verifyHtml = isVerified ? `<img src="${ROBLOX_VERIFY_URL}" class="verify-badge">` : '';
+                
+                msgDiv.innerHTML = `
+                    <div style="font-size: 10px; font-weight: bold; margin-bottom: 5px; display: flex; align-items:center; gap:3px;">
+                        ${data.userName} ${verifyHtml}
+                    </div>
+                    ${data.text ? `<div>${data.text}</div>` : ''}
+                    ${data.image ? `<img src="${data.image}">` : ''}
+                `;
+                container.appendChild(msgDiv);
+            });
+            container.scrollTop = container.scrollHeight;
+        });
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('msg-input');
+        if (!input.value) return;
+
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        const userData = userDoc.data();
+
+        await db.collection('messages').add({
+            uid: currentUser.uid,
+            userName: userData.name,
+            email: currentUser.email,
+            text: input.value,
+            time: Date.now()
+        });
+        input.value = '';
+    }
+
+    async function sendImage(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        const base64 = await toBase64(file);
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        const userData = userDoc.data();
+
+        await db.collection('messages').add({
+            uid: currentUser.uid,
+            userName: userData.name,
+            email: currentUser.email,
+            image: base64,
+            time: Date.now()
+        });
+        closeMediaModal();
+    }
+
+    // --- UI HELPERS ---
+    function showScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function toggleSettings() {
+        const m = document.getElementById('modal-settings');
+        const o = document.getElementById('overlay');
+        m.classList.toggle('open');
+        o.style.display = m.classList.contains('open') ? 'block' : 'none';
+    }
+
+    function openMediaModal() {
+        document.getElementById('modal-media').classList.add('open');
+        document.getElementById('overlay').style.display = 'block';
+    }
+
+    function closeMediaModal() {
+        document.getElementById('modal-media').classList.remove('open');
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    function closeModals() {
+        document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    function triggerFileInput() {
+        document.getElementById('chat-image-input').click();
+    }
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
+</script>
+
+</body>
+</html>
