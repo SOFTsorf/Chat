@@ -3,283 +3,323 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messenger</title>
-    
+    <title>Chat App</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
         :root {
-            --pink: #d8507a;
-            --bg: #ffffff;
-            --light-gray: #f2f2f2;
-            --text-black: #1a1a1a;
-            --text-gray: #7d7d7d;
-            --border: #e0e0e0;
+            --primary-color: #e91e63;
+            --bg-light: #f5f5f5;
+            --text-dark: #333;
+            --verify-blue: #00a2ff;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: #f0f0f0; display: flex; justify-content: center; height: 100vh; color: var(--text-black); }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
 
-        #phone {
-            width: 100%; max-width: 450px; background: var(--bg); height: 100%;
-            display: flex; flex-direction: column; position: relative;
-        }
+        body { background-color: var(--bg-light); display: flex; justify-content: center; height: 100vh; }
 
-        .screen { display: none; flex-direction: column; height: 100%; width: 100%; }
+        #app { width: 100%; max-width: 500px; background: white; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+
+        /* Auth Screen */
+        .screen { display: none; flex-direction: column; height: 100%; padding: 20px; }
         .screen.active { display: flex; }
 
-        /* Login Style */
-        .login-screen { padding: 60px 30px; text-align: center; }
-        .login-screen h1 { color: var(--pink); font-size: 42px; margin-bottom: 40px; font-weight: bold; }
-        .input-box { width: 100%; padding: 18px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 12px; font-size: 18px; outline: none; }
-        .btn-pink { width: 100%; padding: 16px; border: none; border-radius: 35px; background: var(--pink); color: white; font-weight: bold; font-size: 18px; cursor: pointer; margin-top: 10px; }
-        .btn-google { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 35px; background: white; color: #555; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; cursor: pointer; }
+        .auth-container { text-align: center; margin-top: 50px; }
+        .btn { padding: 12px; border: none; border-radius: 25px; cursor: pointer; font-weight: bold; margin: 10px 0; width: 100%; transition: 0.3s; }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-google { background: white; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        input { padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; width: 100%; }
 
-        /* Header (Screenshot Style) */
-        header { padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; background: #fff; }
-        .header-left { display: flex; align-items: center; gap: 10px; }
-        .header-left h2 { font-size: 30px; font-weight: bold; }
-        .plus-icon { color: var(--pink); font-size: 24px; cursor: pointer; }
-        .header-right { display: flex; gap: 20px; font-size: 22px; color: #555; }
-
-        /* Search Bar */
-        .search-container { padding: 10px 20px; position: relative; display: flex; align-items: center; gap: 10px; }
-        .search-box { flex: 1; background: var(--light-gray); border-radius: 10px; padding: 12px 12px 12px 40px; border: none; font-size: 16px; }
-        .search-container i.fa-search { position: absolute; left: 35px; color: var(--text-gray); }
+        /* Header */
+        header { padding: 15px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; }
+        .header-title { font-size: 24px; font-weight: bold; }
 
         /* Chat List */
-        .chat-list { flex: 1; overflow-y: auto; }
-        .chat-item { display: flex; align-items: center; padding: 15px 20px; border-bottom: 0.5px solid var(--border); cursor: pointer; }
-        .chat-avatar { width: 55px; height: 55px; border-radius: 50%; background: #2b6cb0; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; margin-right: 15px; flex-shrink: 0; }
-        .chat-content { flex: 1; overflow: hidden; }
-        .chat-name { font-weight: bold; font-size: 17px; }
-        .chat-preview { color: var(--text-gray); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chat-list-item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #f9f9f9; cursor: pointer; }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background: #ddd; margin-right: 15px; object-fit: cover; }
+        .chat-info { flex: 1; }
+        .chat-name { font-weight: bold; display: flex; align-items: center; gap: 4px; }
+        .verify-badge { width: 16px; height: 16px; }
 
-        /* Chat View */
-        .chat-header { padding: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
-        #messages { flex: 1; overflow-y: auto; padding: 15px; background: #fff; display: flex; flex-direction: column; }
-        .bubble { max-width: 85%; padding: 12px; border-radius: 15px; margin-bottom: 10px; }
-        .bubble.received { align-self: flex-start; background: #fff; border: 1px solid var(--border); }
-        .bubble.sent { align-self: flex-end; background: #f1f1f1; }
-        .sender-tag { color: var(--pink); font-size: 12px; font-weight: bold; margin-bottom: 5px; }
-        .verify-badge { width: 14px; height: 14px; margin-left: 4px; }
+        /* Message Area */
+        #messages { flex: 1; overflow-y: auto; padding: 15px; background: #fff; }
+        .msg { margin-bottom: 15px; max-width: 80%; padding: 10px; border-radius: 15px; position: relative; }
+        .msg.sent { background: var(--primary-color); color: white; align-self: flex-end; margin-left: auto; border-bottom-right-radius: 2px; }
+        .msg.received { background: #f0f0f0; border-bottom-left-radius: 2px; }
+        .msg img { max-width: 100%; border-radius: 10px; margin-top: 5px; }
 
-        .chat-input-bar { padding: 15px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
-        .msg-input-field { flex: 1; background: var(--light-gray); border-radius: 25px; padding: 12px 20px; border: 1px solid var(--pink); outline: none; }
+        /* Input Area */
+        .input-area { padding: 10px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #eee; }
+        .add-btn { font-size: 24px; color: var(--primary-color); cursor: pointer; }
 
         /* Modals */
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: none; z-index: 100; }
-        .bottom-modal { position: absolute; bottom: -100%; left: 0; width: 100%; background: white; border-radius: 25px 25px 0 0; transition: 0.3s; z-index: 101; padding: 20px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); }
-        .bottom-modal.active { bottom: 0; }
-        .modal-item { padding: 15px; display: flex; align-items: center; gap: 15px; font-size: 18px; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
-        .modal-item i { color: var(--pink); width: 25px; }
+        .modal { position: absolute; bottom: -100%; left: 0; width: 100%; background: white; transition: 0.3s; padding: 20px; border-top-left-radius: 20px; border-top-right-radius: 20px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); z-index: 100; }
+        .modal.open { bottom: 0; }
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 90; }
+
+        .settings-item { padding: 15px 0; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 10px; }
     </style>
 </head>
 <body>
 
-<div id="phone">
-    <div id="screen-login" class="screen active login-screen">
-        <h1>Anmelden</h1>
-        <input type="email" id="login-email" class="input-box" placeholder="E-Mail">
-        <input type="password" id="login-password" class="input-box" placeholder="Passwort">
-        <button class="btn-pink" onclick="handleAuth()">Weiter</button>
-        <button class="btn-google" onclick="handleGoogleAuth()">
-            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa/google.svg" width="20"> Mit Google anmelden
-        </button>
+<div id="app">
+    <div id="screen-auth" class="screen active">
+        <div class="auth-container">
+            <h1 style="color: var(--primary-color); font-size: 40px;">Chats</h1>
+            <input type="email" id="email" placeholder="E-Mail">
+            <input type="password" id="password" placeholder="Passwort">
+            <button class="btn btn-primary" onclick="login()">Anmelden / Registrieren</button>
+            <button class="btn btn-google" onclick="loginGoogle()">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20"> Mit Google anmelden
+            </button>
+        </div>
     </div>
 
-    <div id="screen-profile" class="screen login-screen">
-        <h1>Profil</h1>
-        <p style="margin-bottom:20px;">Gib deinen Namen für den Chat ein</p>
-        <input type="text" id="profile-name" class="input-box" placeholder="Dein Name">
-        <button class="btn-pink" onclick="saveProfile()">Speichern & Starten</button>
+    <div id="screen-profile" class="screen">
+        <h2>Profil vervollständigen</h2>
+        <input type="text" id="display-name" placeholder="Dein Name">
+        <p>Profilbild wählen:</p>
+        <input type="file" id="profile-pic-input" accept="image/*">
+        <button class="btn btn-primary" onclick="saveProfile()">Speichern & Starten</button>
     </div>
 
     <div id="screen-main" class="screen">
         <header>
-            <div class="header-left">
-                <h2>Chats</h2>
-                <i class="fa-solid fa-circle-plus plus-icon"></i>
-            </div>
-            <div class="header-right">
-                <i class="fa-regular fa-bell"></i>
-                <i class="fa-solid fa-circle-info"></i>
-                <i class="fa-solid fa-bars" onclick="toggleMenu('menu-main', true)"></i>
+            <span class="header-title">Chats</span>
+            <div>
+                <i class="fa-solid fa-circle-plus" style="color: var(--primary-color); font-size: 24px; margin-right: 15px;"></i>
+                <i class="fa-solid fa-bars" onclick="toggleSettings()" style="cursor:pointer"></i>
             </div>
         </header>
-        <div class="search-container">
-            <i class="fa fa-search"></i>
-            <input type="text" class="search-box" placeholder="Suchen">
-        </div>
-        <div class="chat-list">
-            <div class="chat-item" onclick="openChat('Globaler Chat')">
-                <div class="chat-avatar">G</div>
-                <div class="chat-content">
+        <div id="chat-list-container">
+            <div class="chat-list-item" onclick="openGlobalChat()">
+                <img src="https://cdn-icons-png.flaticon.com/512/2583/2583157.png" class="avatar">
+                <div class="chat-info">
                     <div class="chat-name">Globaler Chat</div>
-                    <div class="chat-preview">Tippe um zu chatten...</div>
+                    <div style="font-size: 12px; color: #888;">Schreibe mit allen...</div>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="screen-chat" class="screen">
-        <header class="chat-header">
-            <i class="fa fa-chevron-left" onclick="showScreen('screen-main')" style="cursor:pointer; color:var(--pink); font-size:20px;"></i>
-            <div class="chat-avatar" style="width:40px; height:40px; font-size:16px;">S</div>
-            <div style="flex:1;">
-                <b id="active-chat-name">S. SFS</b><br>
-                <small style="color:gray;">Hier klicken für Chat Info</small>
-            </div>
+        <header>
+            <i class="fa-solid fa-chevron-left" onclick="showScreen('screen-main')"></i>
+            <span id="chat-target-name" class="header-title">Global</span>
+            <i></i>
         </header>
         <div id="messages"></div>
-        <div class="chat-input-bar">
-            <i class="fa fa-plus plus-icon" onclick="toggleMenu('action-modal', true)"></i>
-            <input type="text" id="msg-input" class="msg-input-field" placeholder="Neue Nachricht">
-            <i class="fa-solid fa-paper-plane plus-icon" onclick="sendMessage()"></i>
+        <div class="input-area">
+            <i class="fa-solid fa-plus add-btn" onclick="openMediaModal()"></i>
+            <input type="text" id="msg-input" placeholder="Neue Nachricht">
+            <i class="fa-solid fa-paper-plane" onclick="sendMessage()" style="color: var(--primary-color); cursor:pointer"></i>
         </div>
     </div>
 
-    <div id="overlay" class="overlay" onclick="closeModals()"></div>
-
-    <div id="menu-main" class="bottom-modal">
-        <div class="modal-item" onclick="showScreen('screen-profile'); closeModals();"><i class="fa fa-user-gear"></i> Profil bearbeiten</div>
-        <div class="modal-item" onclick="handleLogout()" style="color:red;"><i class="fa fa-power-off"></i> Ausloggen</div>
+    <div id="modal-settings" class="modal">
+        <h3>Einstellungen</h3>
+        <div class="settings-item" onclick="showScreen('screen-profile')"><i class="fa-solid fa-gear"></i> Account & Einstellungen</div>
+        <div class="settings-item" onclick="logout()" style="color: red;"><i class="fa-solid fa-power-off"></i> Ausloggen</div>
+        <button class="btn" onclick="toggleSettings()">Schließen</button>
     </div>
 
-    <div id="action-modal" class="bottom-modal">
-        <h3 style="margin-bottom:20px; text-align:center;">Aktion auswählen</h3>
-        <div style="display:flex; justify-content:space-around;">
-            <div style="text-align:center; color:var(--pink);" onclick="alert('Kamera folgt...')"><i class="fa fa-camera" style="font-size:30px; border:1px solid #eee; padding:20px; border-radius:15px;"></i><br>Kamera</div>
-            <div style="text-align:center; color:var(--pink);" onclick="triggerUpload()"><i class="fa fa-image" style="font-size:30px; border:1px solid #eee; padding:20px; border-radius:15px;"></i><br>Medien</div>
+    <div id="modal-media" class="modal">
+        <h3>Aktion auswählen</h3>
+        <div style="display: flex; gap: 20px; margin-top: 20px;">
+            <button class="btn btn-google" onclick="triggerFileInput()"><i class="fa-solid fa-image"></i> Medien</button>
+            <input type="file" id="chat-image-input" hidden accept="image/*" onchange="sendImage(this)">
         </div>
-        <input type="file" id="file-input" hidden accept="image/*" onchange="sendImage(this)">
+        <button class="btn" onclick="closeMediaModal()">Abbrechen</button>
     </div>
+
+    <div id="overlay" class="modal-overlay" onclick="closeModals()"></div>
 </div>
 
 <script>
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
-        apiKey: "AIzaSyBtZhw5zd96zJ5WYArLoMaGbpPjxF_gRUk",
-        authDomain: "login-34727.firebaseapp.com",
-        projectId: "login-34727",
-        storageBucket: "login-34727.firebasestorage.app",
-        messagingSenderId: "721582884449",
-        appId: "1:721582884449:web:9271dcef860f4f76d44c20"
+        apiKey: "DEIN_API_KEY",
+        authDomain: "DEIN_PROJEKT.firebaseapp.com",
+        projectId: "DEIN_PROJEKT",
+        storageBucket: "DEIN_PROJEKT.appspot.com",
+        messagingSenderId: "DEINE_ID",
+        appId: "DEINE_APP_ID"
     };
-
+    
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let userProfile = null;
+    let currentUser = null;
     const VERIFIED_EMAIL = "boxenjob5@gmail.com";
-    const BLUE_CHECK = "https://static.wikia.nocookie.net/roblox/images/5/57/Verified_Badge.png";
+    const ROBLOX_VERIFY_URL = "https://static.wikia.nocookie.net/roblox/images/5/57/Verified_Badge.png"; // Beispiel URL für Roblox Badge
 
-    auth.onAuthStateChanged(async (user) => {
+    // --- AUTH LOGIC ---
+    auth.onAuthStateChanged(user => {
         if (user) {
-            const doc = await db.collection('users').doc(user.uid).get();
-            if (doc.exists) {
-                userProfile = doc.data();
-                showScreen('screen-main');
-            } else {
-                showScreen('screen-profile');
-            }
+            currentUser = user;
+            checkProfile();
         } else {
-            showScreen('screen-login');
+            showScreen('screen-auth');
         }
     });
 
-    async function handleAuth() {
-        const email = document.getElementById('login-email').value;
-        const pass = document.getElementById('login-password').value;
-        if (!email || !pass) return alert("E-Mail und Passwort eingeben!");
-
+    async function login() {
+        const email = document.getElementById('email').value;
+        const pass = document.getElementById('password').value;
         try {
             await auth.signInWithEmailAndPassword(email, pass);
-        } catch (error) {
-            // Wenn Nutzer nicht existiert -> Neu anlegen
-            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-                try {
-                    await auth.createUserWithEmailAndPassword(email, pass);
-                } catch (e) { alert("Fehler: " + e.message); }
-            } else { alert("Login Fehler: " + error.message); }
+        } catch (e) {
+            await auth.createUserWithEmailAndPassword(email, pass);
         }
     }
 
-    function handleGoogleAuth() {
+    async function loginGoogle() {
         const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch(e => alert("Google Fehler: " + e.message));
+        await auth.signInWithPopup(provider);
     }
 
-    function handleLogout() { auth.signOut(); closeModals(); }
+    function logout() {
+        auth.signOut();
+        closeModals();
+    }
+
+    // --- PROFILE LOGIC ---
+    async function checkProfile() {
+        const doc = await db.collection('users').doc(currentUser.uid).get();
+        if (doc.exists) {
+            showScreen('screen-main');
+        } else {
+            showScreen('screen-profile');
+        }
+    }
 
     async function saveProfile() {
-        const name = document.getElementById('profile-name').value;
-        if (!name) return alert("Name fehlt!");
-        const data = { uid: auth.currentUser.uid, name: name, email: auth.currentUser.email };
-        await db.collection('users').doc(auth.currentUser.uid).set(data);
-        userProfile = data;
+        const name = document.getElementById('display-name').value;
+        const file = document.getElementById('profile-pic-input').files[0];
+        let photoBase64 = "https://via.placeholder.com/150";
+
+        if (file) {
+            photoBase64 = await toBase64(file);
+        }
+
+        await db.collection('users').doc(currentUser.uid).set({
+            name: name,
+            photo: photoBase64,
+            email: currentUser.email
+        });
         showScreen('screen-main');
     }
 
-    let messageUnsub = null;
-    function openChat(name) {
-        document.getElementById('active-chat-name').innerText = name;
+    // --- CHAT LOGIC ---
+    function openGlobalChat() {
         showScreen('screen-chat');
-        if (messageUnsub) messageUnsub();
-        messageUnsub = db.collection('messages').orderBy('ts', 'asc').limitToLast(50).onSnapshot(snap => {
-            const box = document.getElementById('messages');
-            box.innerHTML = '';
+        loadMessages();
+    }
+
+    function loadMessages() {
+        db.collection('messages').orderBy('time', 'asc').onSnapshot(snap => {
+            const container = document.getElementById('messages');
+            container.innerHTML = '';
             snap.forEach(doc => {
-                const m = doc.data();
-                const isMe = m.uid === auth.currentUser.uid;
-                const div = document.createElement('div');
-                div.className = `bubble ${isMe ? 'sent' : 'received'}`;
-                let badge = (m.email === VERIFIED_EMAIL) ? `<img src="${BLUE_CHECK}" class="verify-badge">` : '';
-                div.innerHTML = `<div class="sender-tag">${m.sender} ${badge}</div>${m.text ? `<div>${m.text}</div>` : ''}${m.image ? `<img src="${m.image}" style="max-width:100%; border-radius:10px;">` : ''}`;
-                box.appendChild(div);
+                const data = doc.data();
+                const isMe = data.uid === currentUser.uid;
+                const isVerified = data.email === VERIFIED_EMAIL;
+                
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `msg ${isMe ? 'sent' : 'received'}`;
+                
+                let verifyHtml = isVerified ? `<img src="${ROBLOX_VERIFY_URL}" class="verify-badge">` : '';
+                
+                msgDiv.innerHTML = `
+                    <div style="font-size: 10px; font-weight: bold; margin-bottom: 5px; display: flex; align-items:center; gap:3px;">
+                        ${data.userName} ${verifyHtml}
+                    </div>
+                    ${data.text ? `<div>${data.text}</div>` : ''}
+                    ${data.image ? `<img src="${data.image}">` : ''}
+                `;
+                container.appendChild(msgDiv);
             });
-            box.scrollTop = box.scrollHeight;
+            container.scrollTop = container.scrollHeight;
         });
     }
 
     async function sendMessage() {
         const input = document.getElementById('msg-input');
-        if (!input.value.trim()) return;
+        if (!input.value) return;
+
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        const userData = userDoc.data();
+
         await db.collection('messages').add({
-            uid: auth.currentUser.uid, sender: userProfile.name, email: auth.currentUser.email,
-            text: input.value, ts: firebase.firestore.FieldValue.serverTimestamp()
+            uid: currentUser.uid,
+            userName: userData.name,
+            email: currentUser.email,
+            text: input.value,
+            time: Date.now()
         });
         input.value = '';
     }
 
-    function triggerUpload() { document.getElementById('file-input').click(); }
     async function sendImage(input) {
         const file = input.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            await db.collection('messages').add({
-                uid: auth.currentUser.uid, sender: userProfile.name, email: auth.currentUser.email,
-                image: e.target.result, ts: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            closeModals();
-        };
-        reader.readAsDataURL(file);
+
+        const base64 = await toBase64(file);
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        const userData = userDoc.data();
+
+        await db.collection('messages').add({
+            uid: currentUser.uid,
+            userName: userData.name,
+            email: currentUser.email,
+            image: base64,
+            time: Date.now()
+        });
+        closeMediaModal();
     }
 
+    // --- UI HELPERS ---
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     }
-    function toggleMenu(id, show) {
-        document.getElementById('overlay').style.display = show ? 'block' : 'none';
-        document.getElementById(id).classList.toggle('active', show);
+
+    function toggleSettings() {
+        const m = document.getElementById('modal-settings');
+        const o = document.getElementById('overlay');
+        m.classList.toggle('open');
+        o.style.display = m.classList.contains('open') ? 'block' : 'none';
     }
-    function closeModals() { toggleMenu('menu-main', false); toggleMenu('action-modal', false); }
+
+    function openMediaModal() {
+        document.getElementById('modal-media').classList.add('open');
+        document.getElementById('overlay').style.display = 'block';
+    }
+
+    function closeMediaModal() {
+        document.getElementById('modal-media').classList.remove('open');
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    function closeModals() {
+        document.querySelectorAll('.modal').forEach(m => m.classList.remove('open'));
+        document.getElementById('overlay').style.display = 'none';
+    }
+
+    function triggerFileInput() {
+        document.getElementById('chat-image-input').click();
+    }
+
+    const toBase64 = file => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+    });
 </script>
+
 </body>
 </html>
