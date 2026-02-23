@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat App</title>
+    <title>Messenger</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -22,93 +22,67 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-
         body { background-color: #f0f0f0; display: flex; justify-content: center; height: 100vh; color: var(--text-black); }
 
         #phone {
-            width: 100%;
-            max-width: 450px;
-            background: var(--bg);
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            width: 100%; max-width: 450px; background: var(--bg); height: 100%;
+            display: flex; flex-direction: column; position: relative;
         }
 
-        /* --- Screens --- */
         .screen { display: none; flex-direction: column; height: 100%; width: 100%; }
         .screen.active { display: flex; }
 
-        /* --- Login Screen (Video Style) --- */
+        /* Login Style */
         .login-screen { padding: 60px 30px; text-align: center; }
         .login-screen h1 { color: var(--pink); font-size: 42px; margin-bottom: 40px; font-weight: bold; }
-        .input-box { width: 100%; padding: 18px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 12px; font-size: 18px; outline: none; background: #fff; }
+        .input-box { width: 100%; padding: 18px; margin-bottom: 15px; border: 1px solid var(--border); border-radius: 12px; font-size: 18px; outline: none; }
         .btn-pink { width: 100%; padding: 16px; border: none; border-radius: 35px; background: var(--pink); color: white; font-weight: bold; font-size: 18px; cursor: pointer; margin-top: 10px; }
-        .btn-google { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 35px; background: white; color: #555; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; cursor: pointer; font-size: 16px; }
+        .btn-google { width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 35px; background: white; color: #555; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 20px; cursor: pointer; }
 
-        /* --- Header (Screenshots Style) --- */
-        header { padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; background: #fff; border-bottom: 1px solid var(--border); }
+        /* Header (Screenshot Style) */
+        header { padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; background: #fff; }
         .header-left { display: flex; align-items: center; gap: 10px; }
         .header-left h2 { font-size: 30px; font-weight: bold; }
         .plus-icon { color: var(--pink); font-size: 24px; cursor: pointer; }
         .header-right { display: flex; gap: 20px; font-size: 22px; color: #555; }
-        .header-right i { cursor: pointer; }
 
-        /* --- Search Bar --- */
+        /* Search Bar */
         .search-container { padding: 10px 20px; position: relative; display: flex; align-items: center; gap: 10px; }
-        .search-box { flex: 1; background: var(--light-gray); border-radius: 10px; padding: 12px 12px 12px 40px; border: none; font-size: 16px; outline: none; }
+        .search-box { flex: 1; background: var(--light-gray); border-radius: 10px; padding: 12px 12px 12px 40px; border: none; font-size: 16px; }
         .search-container i.fa-search { position: absolute; left: 35px; color: var(--text-gray); }
-        .filter-icon { color: #555; font-size: 20px; }
 
-        /* --- Chat List --- */
+        /* Chat List */
         .chat-list { flex: 1; overflow-y: auto; }
         .chat-item { display: flex; align-items: center; padding: 15px 20px; border-bottom: 0.5px solid var(--border); cursor: pointer; }
         .chat-avatar { width: 55px; height: 55px; border-radius: 50%; background: #2b6cb0; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; margin-right: 15px; flex-shrink: 0; }
         .chat-content { flex: 1; overflow: hidden; }
-        .chat-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
         .chat-name { font-weight: bold; font-size: 17px; }
-        .chat-time { color: var(--text-gray); font-size: 13px; }
         .chat-preview { color: var(--text-gray); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* --- Chat Window --- */
+        /* Chat View */
         .chat-header { padding: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 15px; }
-        .chat-header-info { line-height: 1.2; }
-        .chat-header-info div:first-child { font-weight: bold; font-size: 16px; }
-        .chat-header-info div:last-child { color: var(--text-gray); font-size: 13px; }
-
         #messages { flex: 1; overflow-y: auto; padding: 15px; background: #fff; display: flex; flex-direction: column; }
-        .date-divider { text-align: center; margin: 20px 0; color: var(--text-gray); font-size: 12px; background: #e8eaed; padding: 4px 10px; border-radius: 10px; align-self: center; }
-        
-        .bubble { max-width: 85%; padding: 12px; border-radius: 15px; margin-bottom: 10px; position: relative; }
+        .bubble { max-width: 85%; padding: 12px; border-radius: 15px; margin-bottom: 10px; }
         .bubble.received { align-self: flex-start; background: #fff; border: 1px solid var(--border); }
-        .bubble.sent { align-self: flex-end; background: #f1f1f1; color: #000; }
-        .sender-tag { color: var(--pink); font-size: 12px; font-weight: bold; margin-bottom: 5px; display: flex; align-items: center; gap: 4px; }
-        .bubble-time { text-align: right; font-size: 11px; color: var(--text-gray); margin-top: 5px; }
-        .verify-badge { width: 14px; height: 14px; }
+        .bubble.sent { align-self: flex-end; background: #f1f1f1; }
+        .sender-tag { color: var(--pink); font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+        .verify-badge { width: 14px; height: 14px; margin-left: 4px; }
 
         .chat-input-bar { padding: 15px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
         .msg-input-field { flex: 1; background: var(--light-gray); border-radius: 25px; padding: 12px 20px; border: 1px solid var(--pink); outline: none; }
 
-        /* --- Modals & Menus --- */
+        /* Modals */
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); display: none; z-index: 100; }
-        .bottom-modal { position: absolute; bottom: -100%; left: 0; width: 100%; background: white; border-radius: 25px 25px 0 0; transition: 0.3s; z-index: 101; padding: 20px; }
+        .bottom-modal { position: absolute; bottom: -100%; left: 0; width: 100%; background: white; border-radius: 25px 25px 0 0; transition: 0.3s; z-index: 101; padding: 20px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1); }
         .bottom-modal.active { bottom: 0; }
         .modal-item { padding: 15px; display: flex; align-items: center; gap: 15px; font-size: 18px; cursor: pointer; border-bottom: 1px solid #f0f0f0; }
         .modal-item i { color: var(--pink); width: 25px; }
-
-        #action-modal { text-align: center; }
-        .action-grid { display: flex; justify-content: space-around; margin-top: 20px; }
-        .action-box { display: flex; flex-direction: column; align-items: center; gap: 10px; color: var(--pink); cursor: pointer; }
-        .action-box i { font-size: 30px; border: 1px solid #eee; padding: 20px; border-radius: 15px; }
-
     </style>
 </head>
 <body>
 
 <div id="phone">
-    
-    <div id="screen-login" class="screen login-screen active">
+    <div id="screen-login" class="screen active login-screen">
         <h1>Anmelden</h1>
         <input type="email" id="login-email" class="input-box" placeholder="E-Mail">
         <input type="password" id="login-password" class="input-box" placeholder="Passwort">
@@ -120,7 +94,7 @@
 
     <div id="screen-profile" class="screen login-screen">
         <h1>Profil</h1>
-        <p style="margin-bottom:20px;">Wähle deinen Namen für den Chat</p>
+        <p style="margin-bottom:20px;">Gib deinen Namen für den Chat ein</p>
         <input type="text" id="profile-name" class="input-box" placeholder="Dein Name">
         <button class="btn-pink" onclick="saveProfile()">Speichern & Starten</button>
     </div>
@@ -140,19 +114,14 @@
         <div class="search-container">
             <i class="fa fa-search"></i>
             <input type="text" class="search-box" placeholder="Suchen">
-            <i class="fa-solid fa-sliders filter-icon"></i>
         </div>
-        <div class="chat-list" id="chat-list-container">
-            <div class="chat-item" onclick="openChat('Globaler Gruppenchat')">
-                <div class="chat-avatar" style="background:#4a90e2;">G</div>
+        <div class="chat-list">
+            <div class="chat-item" onclick="openChat('Globaler Chat')">
+                <div class="chat-avatar">G</div>
                 <div class="chat-content">
-                    <div class="chat-top">
-                        <span class="chat-name">Globaler Gruppenchat</span>
-                        <span class="chat-time" id="last-msg-time">Gerade</span>
-                    </div>
-                    <div class="chat-preview" id="last-msg-preview">Tippe um zu schreiben...</div>
+                    <div class="chat-name">Globaler Chat</div>
+                    <div class="chat-preview">Tippe um zu chatten...</div>
                 </div>
-                <i class="fa-solid fa-chevron-right" style="color:#ccc; font-size:12px;"></i>
             </div>
         </div>
     </div>
@@ -160,10 +129,10 @@
     <div id="screen-chat" class="screen">
         <header class="chat-header">
             <i class="fa fa-chevron-left" onclick="showScreen('screen-main')" style="cursor:pointer; color:var(--pink); font-size:20px;"></i>
-            <div class="chat-avatar" style="width:40px; height:40px; font-size:16px; margin-right:0;">S</div>
-            <div class="chat-header-info">
-                <div id="active-chat-name">S. SFS</div>
-                <div>Hier klicken für Chat Info</div>
+            <div class="chat-avatar" style="width:40px; height:40px; font-size:16px;">S</div>
+            <div style="flex:1;">
+                <b id="active-chat-name">S. SFS</b><br>
+                <small style="color:gray;">Hier klicken für Chat Info</small>
             </div>
         </header>
         <div id="messages"></div>
@@ -177,31 +146,21 @@
     <div id="overlay" class="overlay" onclick="closeModals()"></div>
 
     <div id="menu-main" class="bottom-modal">
-        <div class="modal-item" onclick="showScreen('screen-profile'); closeModals();"><i class="fa fa-cog"></i> Account & Einstellungen</div>
-        <div class="modal-item"><i class="fa fa-users"></i> Meine Gruppen</div>
-        <div class="modal-item" onclick="handleLogout()" style="color:red; border:none;"><i class="fa fa-power-off" style="color:red;"></i> Ausloggen</div>
+        <div class="modal-item" onclick="showScreen('screen-profile'); closeModals();"><i class="fa fa-user-gear"></i> Profil bearbeiten</div>
+        <div class="modal-item" onclick="handleLogout()" style="color:red;"><i class="fa fa-power-off"></i> Ausloggen</div>
     </div>
 
     <div id="action-modal" class="bottom-modal">
-        <h3 style="margin-bottom:20px;">Aktion auswählen</h3>
-        <div class="action-grid">
-            <div class="action-box">
-                <i class="fa fa-camera"></i>
-                <span>Kamera</span>
-            </div>
-            <div class="action-box" onclick="triggerImageUpload()">
-                <i class="fa fa-image"></i>
-                <span>Medien</span>
-            </div>
+        <h3 style="margin-bottom:20px; text-align:center;">Aktion auswählen</h3>
+        <div style="display:flex; justify-content:space-around;">
+            <div style="text-align:center; color:var(--pink);" onclick="alert('Kamera folgt...')"><i class="fa fa-camera" style="font-size:30px; border:1px solid #eee; padding:20px; border-radius:15px;"></i><br>Kamera</div>
+            <div style="text-align:center; color:var(--pink);" onclick="triggerUpload()"><i class="fa fa-image" style="font-size:30px; border:1px solid #eee; padding:20px; border-radius:15px;"></i><br>Medien</div>
         </div>
         <input type="file" id="file-input" hidden accept="image/*" onchange="sendImage(this)">
-        <button class="btn-pink" style="background:#eee; color:#333; margin-top:30px;" onclick="closeModals()">Schließen</button>
     </div>
-
 </div>
 
 <script>
-    // --- DEINE FIREBASE DATEN ---
     const firebaseConfig = {
         apiKey: "AIzaSyBtZhw5zd96zJ5WYArLoMaGbpPjxF_gRUk",
         authDomain: "login-34727.firebaseapp.com",
@@ -219,7 +178,6 @@
     const VERIFIED_EMAIL = "boxenjob5@gmail.com";
     const BLUE_CHECK = "https://static.wikia.nocookie.net/roblox/images/5/57/Verified_Badge.png";
 
-    // --- AUTH LOGIC (FIXED) ---
     auth.onAuthStateChanged(async (user) => {
         if (user) {
             const doc = await db.collection('users').doc(user.uid).get();
@@ -237,134 +195,91 @@
     async function handleAuth() {
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-password').value;
-        
-        if (!email || !pass) return alert("Bitte E-Mail und Passwort eingeben!");
+        if (!email || !pass) return alert("E-Mail und Passwort eingeben!");
 
         try {
-            // Versuche Login
             await auth.signInWithEmailAndPassword(email, pass);
         } catch (error) {
-            if (error.code === 'auth/user-not-found') {
-                // Wenn Nutzer nicht existiert, registriere ihn
+            // Wenn Nutzer nicht existiert -> Neu anlegen
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
                 try {
                     await auth.createUserWithEmailAndPassword(email, pass);
-                } catch (regErr) { alert("Registrierung fehlgeschlagen: " + regErr.message); }
-            } else {
-                alert("Fehler: " + error.message);
-            }
+                } catch (e) { alert("Fehler: " + e.message); }
+            } else { alert("Login Fehler: " + error.message); }
         }
     }
 
     function handleGoogleAuth() {
         const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider);
+        auth.signInWithPopup(provider).catch(e => alert("Google Fehler: " + e.message));
     }
 
-    function handleLogout() {
-        auth.signOut();
-        closeModals();
-    }
+    function handleLogout() { auth.signOut(); closeModals(); }
 
     async function saveProfile() {
         const name = document.getElementById('profile-name').value;
         if (!name) return alert("Name fehlt!");
-
-        const data = {
-            uid: auth.currentUser.uid,
-            name: name,
-            email: auth.currentUser.email,
-            createdAt: new Date()
-        };
+        const data = { uid: auth.currentUser.uid, name: name, email: auth.currentUser.email };
         await db.collection('users').doc(auth.currentUser.uid).set(data);
         userProfile = data;
         showScreen('screen-main');
     }
 
-    // --- CHAT LOGIC ---
     let messageUnsub = null;
-
     function openChat(name) {
         document.getElementById('active-chat-name').innerText = name;
         showScreen('screen-chat');
-        
         if (messageUnsub) messageUnsub();
-
-        messageUnsub = db.collection('messages').orderBy('ts', 'asc').limitToLast(50)
-            .onSnapshot(snap => {
-                const box = document.getElementById('messages');
-                box.innerHTML = '<div class="date-divider">HEUTE</div>';
-                snap.forEach(doc => {
-                    const m = doc.data();
-                    const isMe = m.uid === auth.currentUser.uid;
-                    const isVer = m.email === VERIFIED_EMAIL;
-
-                    const div = document.createElement('div');
-                    div.className = `bubble ${isMe ? 'sent' : 'received'}`;
-                    
-                    let badge = isVer ? `<img src="${BLUE_CHECK}" class="verify-badge">` : '';
-                    
-                    div.innerHTML = `
-                        <div class="sender-tag">${m.sender} ${badge}</div>
-                        ${m.text ? `<div>${m.text}</div>` : ''}
-                        ${m.image ? `<img src="${m.image}" style="max-width:100%; border-radius:10px; margin-top:5px;">` : ''}
-                        <div class="bubble-time">${m.time || '07:01'}</div>
-                    `;
-                    box.appendChild(div);
-                });
-                box.scrollTop = box.scrollHeight;
+        messageUnsub = db.collection('messages').orderBy('ts', 'asc').limitToLast(50).onSnapshot(snap => {
+            const box = document.getElementById('messages');
+            box.innerHTML = '';
+            snap.forEach(doc => {
+                const m = doc.data();
+                const isMe = m.uid === auth.currentUser.uid;
+                const div = document.createElement('div');
+                div.className = `bubble ${isMe ? 'sent' : 'received'}`;
+                let badge = (m.email === VERIFIED_EMAIL) ? `<img src="${BLUE_CHECK}" class="verify-badge">` : '';
+                div.innerHTML = `<div class="sender-tag">${m.sender} ${badge}</div>${m.text ? `<div>${m.text}</div>` : ''}${m.image ? `<img src="${m.image}" style="max-width:100%; border-radius:10px;">` : ''}`;
+                box.appendChild(div);
             });
+            box.scrollTop = box.scrollHeight;
+        });
     }
 
     async function sendMessage() {
         const input = document.getElementById('msg-input');
         if (!input.value.trim()) return;
-
         await db.collection('messages').add({
-            uid: auth.currentUser.uid,
-            sender: userProfile.name,
-            email: auth.currentUser.email,
-            text: input.value,
-            ts: firebase.firestore.FieldValue.serverTimestamp(),
-            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            uid: auth.currentUser.uid, sender: userProfile.name, email: auth.currentUser.email,
+            text: input.value, ts: firebase.firestore.FieldValue.serverTimestamp()
         });
         input.value = '';
     }
 
-    function triggerImageUpload() { document.getElementById('file-input').click(); }
-
+    function triggerUpload() { document.getElementById('file-input').click(); }
     async function sendImage(input) {
-        if (!input.files[0]) return;
+        const file = input.files[0];
+        if (!file) return;
         const reader = new FileReader();
         reader.onload = async (e) => {
             await db.collection('messages').add({
-                uid: auth.currentUser.uid,
-                sender: userProfile.name,
-                email: auth.currentUser.email,
-                image: e.target.result,
-                ts: firebase.firestore.FieldValue.serverTimestamp(),
-                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                uid: auth.currentUser.uid, sender: userProfile.name, email: auth.currentUser.email,
+                image: e.target.result, ts: firebase.firestore.FieldValue.serverTimestamp()
             });
             closeModals();
         };
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
     }
 
-    // --- UI HELPERS ---
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     }
-
     function toggleMenu(id, show) {
         document.getElementById('overlay').style.display = show ? 'block' : 'none';
         document.getElementById(id).classList.toggle('active', show);
     }
-
-    function closeModals() {
-        toggleMenu('menu-main', false);
-        toggleMenu('action-modal', false);
-    }
+    function closeModals() { toggleMenu('menu-main', false); toggleMenu('action-modal', false); }
 </script>
-
 </body>
 </html>
