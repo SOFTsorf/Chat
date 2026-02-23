@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sdui Messenger</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <title>Messenger</title> <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
@@ -13,110 +11,113 @@
     
     <style>
         :root {
-            --pink: #d8507a;
-            --pink-light: #fdf2f5;
+            --sdui-red: #A62C4D; /* Sdui Hauptfarbe aus Screenshots */
+            --sdui-red-light: #f5e6ea;
             --bg: #ffffff;
-            --gray-bg: #f0f1f3;
-            --text: #2c2c2c;
-            --border: #e2e2e2;
+            --gray-bg: #f5f5f5;
+            --text: #1c1c1e;
+            --border: #e5e5ea;
+            --blue-avatar: #3a71a9;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
         
-        body { 
-            background-color: #f0f0f0; 
-            height: 100dvh; 
-            display: flex; 
-            justify-content: center; 
-            overflow: hidden; 
-        }
+        body { background-color: #000; height: 100dvh; display: flex; justify-content: center; }
 
-        #app {
-            width: 100%; max-width: 500px; background: white; height: 100dvh;
-            display: flex; flex-direction: column; position: relative;
-        }
+        #app { width: 100%; max-width: 500px; background: white; height: 100dvh; display: flex; flex-direction: column; position: relative; overflow: hidden; }
 
         .screen { display: none; flex-direction: column; height: 100%; width: 100%; background: white; }
         .screen.active { display: flex; }
 
-        /* HEADER */
-        header { padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; }
-        .header-left { display: flex; align-items: center; gap: 10px; }
-        .header-left h1 { font-size: 32px; font-weight: 800; color: var(--text); }
-        .plus-circle { 
-            width: 32px; height: 32px; background: var(--pink-light); border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; color: var(--pink); font-size: 20px; cursor: pointer;
-        }
-        .header-icons { display: flex; gap: 20px; font-size: 22px; color: #555; }
+        /* HEADER (Screenshot Style) */
+        header { padding: 15px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid transparent; }
+        header.border { border-bottom: 1px solid var(--border); }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .header-left h1 { font-size: 28px; font-weight: 700; color: var(--text); }
+        .header-icons { display: flex; gap: 20px; font-size: 20px; color: #666; align-items: center; }
+        .plus-btn { color: var(--sdui-red); font-size: 24px; cursor: pointer; background: var(--sdui-red-light); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;}
 
         /* SUCHE */
-        .search-area { padding: 0 15px 15px 15px; position: relative; }
-        .search-box { width: 100%; background: var(--gray-bg); border-radius: 12px; padding: 12px 12px 12px 45px; border: none; font-size: 17px; outline: none; }
-        .search-area i.fa-search { position: absolute; left: 30px; top: 14px; color: #8e8e93; }
+        .search-area { padding: 0 20px 15px 20px; position: relative; }
+        .search-box { width: 100%; background: var(--gray-bg); border-radius: 10px; padding: 10px 10px 10px 40px; border: none; font-size: 16px; outline: none; }
+        .search-area i.fa-search { position: absolute; left: 35px; top: 12px; color: #8e8e93; font-size: 14px; }
 
-        /* CHAT LISTE */
-        .chat-list { flex: 1; overflow-y: auto; border-top: 1px solid var(--border); }
-        .chat-item { display: flex; padding: 15px; border-bottom: 1px solid #f2f2f2; align-items: center; cursor: pointer; }
-        .avatar { 
-            width: 55px; height: 55px; border-radius: 50%; background: #3a71a9; color: white; 
-            display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 15px; flex-shrink: 0; overflow: hidden;
-        }
-        .chat-info { flex: 1; }
-        .chat-info .top { display: flex; justify-content: space-between; font-weight: 600; font-size: 16px; }
-        .chat-info .sub { color: #8e8e93; font-size: 13px; margin-top: 2px; }
-        .chat-info .msg { color: #555; font-size: 14px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
+        /* CHAT LISTE (Screenshot 2) */
+        .chat-list { flex: 1; overflow-y: auto; }
+        .chat-item { display: flex; padding: 12px 20px; border-bottom: 1px solid var(--border); align-items: center; cursor: pointer; }
+        .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--blue-avatar); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; margin-right: 15px; flex-shrink: 0; overflow: hidden; }
+        .chat-info { flex: 1; min-width: 0; }
+        .chat-info .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+        .chat-info .name { font-weight: 500; font-size: 16px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .chat-info .time { color: #8e8e93; font-size: 13px; }
+        .chat-info .sub { color: #8e8e93; font-size: 13px; margin-bottom: 2px; }
+        .chat-info .msg { color: #8e8e93; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* MESSAGES (News-Card Style) */
-        #msg-container { flex: 1; overflow-y: auto; padding: 15px; background: #fff; display: flex; flex-direction: column; gap: 15px; }
-        .news-card {
-            background: white; border: 1px solid var(--border); border-radius: 12px; padding: 15px;
-            max-width: 90%; align-self: flex-start; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .news-header { color: var(--pink); font-size: 12px; font-weight: 700; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
-        .news-content { font-size: 15px; color: var(--text); line-height: 1.4; }
-        .news-btn { margin-top: 12px; width: 100%; padding: 10px; background: var(--pink-light); color: var(--pink); border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        /* CHAT VERLAUF */
+        #msg-container { flex: 1; overflow-y: auto; padding: 15px; background: #fff; display: flex; flex-direction: column; gap: 10px; }
         
-        .sent-bubble { align-self: flex-end; background: var(--gray-bg); padding: 10px 15px; border-radius: 15px; max-width: 80%; font-size: 15px; }
+        .bubble { max-width: 80%; padding: 10px 15px; font-size: 15px; line-height: 1.4; word-wrap: break-word; }
+        .bubble-me { align-self: flex-end; background: var(--gray-bg); color: var(--text); border-radius: 18px 18px 4px 18px; }
+        .bubble-other { align-self: flex-start; background: white; border: 1px solid var(--border); color: var(--text); border-radius: 18px 18px 18px 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .bubble-header { font-size: 12px; font-weight: 600; color: var(--sdui-red); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+        .verify-badge { width: 14px; height: 14px; }
+        .bubble img { width: 100%; border-radius: 8px; margin-top: 5px; }
 
         /* INPUT AREA */
-        .input-area { padding: 10px 15px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
-        .input-box { flex: 1; background: var(--gray-bg); border-radius: 25px; padding: 10px 15px; border: 1.5px solid var(--pink); outline: none; font-size: 16px; }
+        .input-area { padding: 10px 15px 25px 15px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; background: white; }
+        .input-box { flex: 1; background: var(--gray-bg); border-radius: 20px; padding: 10px 15px; border: none; outline: none; font-size: 16px; }
 
-        /* SHEETS */
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; z-index: 100; }
-        .sheet { position: absolute; bottom: -100%; left: 0; width: 100%; background: white; border-radius: 20px 20px 0 0; transition: 0.3s cubic-bezier(0.25, 0.1, 0.25, 1); z-index: 101; padding: 25px 20px; }
+        /* BOTTOM SHEETS (Screenshots 3, 4, 6) */
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 100; }
+        .sheet { position: absolute; bottom: -100%; left: 0; width: 100%; background: white; border-radius: 15px 15px 0 0; transition: 0.3s ease-out; z-index: 101; padding: 20px; padding-bottom: 40px; }
         .sheet.active { bottom: 0; }
-        .sheet-title { text-align: center; font-size: 19px; font-weight: 600; margin-bottom: 25px; }
-        .action-grid { display: flex; justify-content: space-around; }
-        .action-item { text-align: center; cursor: pointer; }
-        .action-item i { font-size: 28px; color: var(--pink); border: 1px solid #eee; padding: 18px; border-radius: 15px; margin-bottom: 8px; display: block; }
+        .sheet-title { text-align: center; font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+        
+        .menu-item { display: flex; align-items: center; padding: 15px 0; font-size: 16px; border-bottom: 1px solid var(--border); cursor: pointer; color: var(--text); }
+        .menu-item i { width: 30px; color: var(--sdui-red); font-size: 20px; }
+        .menu-item.danger { color: #ff3b30; }
+        .menu-item.danger i { color: #ff3b30; }
 
-        .verify-badge { width: 16px; height: 16px; margin-left: 2px; }
+        /* BUTTONS & FORMS */
+        .btn-primary { width: 100%; padding: 14px; background: var(--sdui-red); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .btn-google { width: 100%; padding: 14px; background: white; border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; font-weight: 500; margin-top: 15px; }
+        .form-input { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); font-size: 16px; background: var(--gray-bg); }
+
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div id="screen-login" class="screen active" style="justify-content:center; padding: 30px; text-align:center;">
-        <h1 style="color:var(--pink); font-size: 45px; margin-bottom: 40px; font-weight: 800;">Sdui</h1>
-        <input type="email" id="auth-email" placeholder="E-Mail" style="width:100%; padding:15px; margin-bottom:10px; border-radius:12px; border:1px solid #ccc; font-size:16px;">
-        <input type="password" id="auth-pass" placeholder="Passwort" style="width:100%; padding:15px; margin-bottom:20px; border-radius:12px; border:1px solid #ccc; font-size:16px;">
-        <button onclick="loginEmail()" style="width:100%; padding:15px; background:var(--pink); color:white; border:none; border-radius:25px; font-weight:bold; font-size:16px; cursor:pointer;">Anmelden / Registrieren</button>
-        <div style="margin: 20px 0; color:#888;">oder</div>
-        <button onclick="loginGoogle()" style="width:100%; padding:15px; background:white; border:1px solid #ccc; border-radius:25px; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; font-weight:600;">
+    <div id="screen-login" class="screen active" style="justify-content:center; padding: 30px;">
+        <h1 style="color:var(--sdui-red); font-size: 40px; margin-bottom: 10px; font-weight: 800; text-align: center;">Messenger</h1>
+        <p style="text-align: center; color: #666; margin-bottom: 30px;">Melde dich an, um fortzufahren</p>
+        
+        <input type="email" id="auth-email" class="form-input" placeholder="E-Mail Adresse">
+        <input type="password" id="auth-pass" class="form-input" placeholder="Passwort">
+        <button class="btn-primary" onclick="loginEmail()">Anmelden / Registrieren</button>
+        
+        <div style="text-align: center; margin: 20px 0; color:#888; font-size: 14px;">oder</div>
+        
+        <button class="btn-google" onclick="loginGoogle()">
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/pwa/google.svg" width="20"> Mit Google anmelden
         </button>
+    </div>
+
+    <div id="screen-setup" class="screen" style="justify-content:center; padding: 30px;">
+        <h2 style="margin-bottom: 20px; text-align: center;">Profil einrichten</h2>
+        <p style="text-align: center; color: #666; margin-bottom: 20px;">Bitte gib deinen Namen ein, wie er für andere sichtbar sein soll.</p>
+        <input type="text" id="setup-name" class="form-input" placeholder="Vor- und Nachname">
+        <button class="btn-primary" onclick="saveProfile()">Profil speichern</button>
     </div>
 
     <div id="screen-main" class="screen">
         <header>
             <div class="header-left">
                 <h1>Chats</h1>
-                <div class="plus-circle" onclick="toggleSheet('sheet-create', true)"><i class="fa fa-plus"></i></div>
+                <div class="plus-btn" onclick="showNewChatScreen()"><i class="fa fa-plus"></i></div>
             </div>
             <div class="header-icons">
-                <i class="fa-regular fa-bell"></i>
-                <i class="fa-solid fa-circle-info"></i>
+                <i class="fa-regular fa-bell" onclick="requestPushPermissions()"></i>
                 <i class="fa-solid fa-bars" onclick="toggleSheet('sheet-menu', true)"></i>
             </div>
         </header>
@@ -127,49 +128,58 @@
         <div id="chat-list" class="chat-list"></div>
     </div>
 
+    <div id="screen-new-chat" class="screen">
+        <header class="border">
+            <div class="header-left">
+                <i class="fa fa-chevron-left" style="color:var(--sdui-red); font-size:20px; cursor:pointer;" onclick="showScreen('screen-main')"></i>
+                <h1 style="font-size: 20px;">Neuer Chat</h1>
+            </div>
+        </header>
+        <div style="background: #fff3cd; color: #856404; padding: 15px; margin: 15px; border-radius: 8px; font-size: 14px;">
+            Ein Chat kann nur mit registrierten Nutzer/innen erstellt werden.
+        </div>
+        <div class="search-area"><i class="fa fa-search"></i><input type="text" class="search-box" placeholder="Suchen"></div>
+        <div id="user-list" class="chat-list"></div>
+    </div>
+
     <div id="screen-chat" class="screen">
-        <header style="justify-content: flex-start; gap: 15px; border-bottom: 1px solid #eee;">
-            <i class="fa fa-chevron-left" style="color:var(--pink); font-size:22px; cursor:pointer;" onclick="showScreen('screen-main')"></i>
-            <div class="avatar" style="width:40px; height:40px; margin:0;" id="chat-avatar">?</div>
-            <div>
-                <b id="chat-name" style="font-size:17px;">Chat</b><br>
-                <small style="color:#8e8e93;">Informationen anzeigen</small>
+        <header class="border">
+            <div class="header-left">
+                <i class="fa fa-chevron-left" style="color:var(--sdui-red); font-size:20px; cursor:pointer;" onclick="showScreen('screen-main')"></i>
+                <div class="avatar" style="width:36px; height:36px; font-size: 14px; margin-right: 5px;" id="chat-avatar">?</div>
+                <div>
+                    <div id="chat-name" style="font-size:16px; font-weight: 600;">Chat Name</div>
+                    <div style="color:#8e8e93; font-size:12px;">Patrick Roth</div> </div>
             </div>
         </header>
         <div id="msg-container"></div>
         <div class="input-area">
-            <i class="fa fa-plus" style="color:var(--pink); font-size:24px; cursor:pointer;" onclick="toggleSheet('sheet-actions', true)"></i>
-            <input type="text" id="msg-input" class="input-box" placeholder="Nachricht schreiben...">
-            <i class="fa-solid fa-paper-plane" style="color:var(--pink); font-size:22px; cursor:pointer;" onclick="sendMsg()"></i>
+            <i class="fa fa-plus" style="color:var(--sdui-red); font-size:24px; cursor:pointer;" onclick="toggleSheet('sheet-actions', true)"></i>
+            <input type="text" id="msg-input" class="input-box" placeholder="Nachricht...">
+            <i class="fa-solid fa-paper-plane" style="color:var(--sdui-red); font-size:20px; cursor:pointer;" onclick="sendMsg()"></i>
         </div>
     </div>
 
     <div id="overlay" class="overlay" onclick="closeAll()"></div>
 
+    <div id="sheet-menu" class="sheet">
+        <div class="menu-item" onclick="alert('Profilbild ändern folgt im nächsten Schritt')"><i class="fa-regular fa-circle-user"></i> Account & Einstellungen</div>
+        <div class="menu-item" onclick="alert('Gruppen folgen im nächsten Schritt')"><i class="fa-solid fa-users"></i> Meine Gruppen</div>
+        <div class="menu-item danger" onclick="logout()"><i class="fa-solid fa-power-off"></i> Ausloggen</div>
+    </div>
+
     <div id="sheet-actions" class="sheet">
-        <div class="sheet-title">Aktion auswählen</div>
-        <div class="action-grid">
-            <div class="action-item" onclick="triggerFile()"><i class="fa-solid fa-camera"></i>Kamera</div>
-            <div class="action-item" onclick="triggerFile()"><i class="fa-solid fa-image"></i>Medien</div>
+        <div class="sheet-title">Aktion auswählen <i class="fa fa-times" style="float:right; color:#ccc; cursor:pointer;" onclick="closeAll()"></i></div>
+        <div style="display: flex; gap: 15px;">
+            <button style="flex: 1; padding: 15px; border: 1px solid var(--sdui-red-light); background: white; color: var(--sdui-red); border-radius: 10px; cursor:pointer;" onclick="triggerFile()"><i class="fa-solid fa-camera" style="display:block; font-size:24px; margin-bottom:5px;"></i>Kamera</button>
+            <button style="flex: 1; padding: 15px; border: 1px solid var(--sdui-red-light); background: white; color: var(--sdui-red); border-radius: 10px; cursor:pointer;" onclick="triggerFile()"><i class="fa-regular fa-image" style="display:block; font-size:24px; margin-bottom:5px;"></i>Medien</button>
         </div>
         <input type="file" id="file-input" hidden accept="image/*" onchange="uploadImg(this)">
-    </div>
-
-    <div id="sheet-menu" class="sheet">
-        <div class="sheet-title">Menü</div>
-        <div style="padding:15px 0; font-size:18px; border-bottom:1px solid #eee;" onclick="alert('Funktion folgt')"><i class="fa fa-user-gear" style="margin-right:15px; color:var(--pink);"></i> Account & Einstellungen</div>
-        <div style="padding:15px 0; font-size:18px; color:red;" onclick="firebase.auth().signOut()"><i class="fa fa-power-off" style="margin-right:15px;"></i> Ausloggen</div>
-    </div>
-
-    <div id="sheet-create" class="sheet">
-        <div class="sheet-title">Neue Gruppe</div>
-        <input type="text" id="new-group-name" class="input-box" style="width:100%; margin-bottom:20px;" placeholder="Gruppenname">
-        <button onclick="createGroup()" style="width:100%; padding:15px; background:var(--pink); color:white; border:none; border-radius:12px; font-weight:bold;">Erstellen</button>
     </div>
 </div>
 
 <script>
-    // --- DEINE FIREBASE KONFIGURATION ---
+    // --- DEINE CONFIG (Aus deinem Prompt) ---
     const firebaseConfig = {
         apiKey: "AIzaSyBtZhw5zd96zJ5WYArLoMaGbpPjxF_gRUk",
         authDomain: "login-34727.firebaseapp.com",
@@ -178,8 +188,6 @@
         messagingSenderId: "721582884449",
         appId: "1:721582884449:web:9271dcef860f4f76d44c20"
     };
-
-    // --- DEIN IMGBB KEY ---
     const IMGBB_KEY = "1cb3871dd6829d7133f3285c289ffc0a";
     const ADMIN_EMAIL = "boxenjob5@gmail.com";
     const ROBLOX_BADGE = "https://static.wikia.nocookie.net/roblox/images/5/57/Verified_Badge.png";
@@ -188,29 +196,66 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    let user = null;
-    let activeChat = null;
+    let currentUser = null;
+    let userProfileData = null;
+    let activeChatId = null;
 
     // --- AUTH LOGIK ---
-    auth.onAuthStateChanged(u => {
-        if(u) { user = u; showScreen('screen-main'); loadChats(); }
-        else { showScreen('screen-login'); }
+    auth.onAuthStateChanged(async (u) => {
+        if(u) { 
+            currentUser = u;
+            // Prüfen, ob Nutzer schon in Datenbank existiert (Namen vergeben hat)
+            const userDoc = await db.collection('users').doc(u.uid).get();
+            if(!userDoc.exists) {
+                showScreen('screen-setup');
+            } else {
+                userProfileData = userDoc.data();
+                showScreen('screen-main');
+                loadChats();
+            }
+        } else { 
+            showScreen('screen-login'); 
+        }
     });
 
     async function loginEmail() {
         const e = document.getElementById('auth-email').value;
         const p = document.getElementById('auth-pass').value;
-        if(!e || !p) return alert("Bitte alles ausfüllen");
+        if(!e || !p) return alert("Bitte E-Mail und Passwort eingeben");
         try { await auth.signInWithEmailAndPassword(e, p); }
-        catch { await auth.createUserWithEmailAndPassword(e, p); }
+        catch { 
+            try { await auth.createUserWithEmailAndPassword(e, p); } 
+            catch(err) { alert(err.message); }
+        }
     }
 
     function loginGoogle() {
         const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch(err => alert("Google Error: " + err.message));
+        auth.signInWithPopup(provider).catch(err => alert(err.message));
     }
 
-    // --- NAVIGATION ---
+    function logout() {
+        closeAll();
+        auth.signOut();
+    }
+
+    // --- PROFIL LOGIK ---
+    async function saveProfile() {
+        const name = document.getElementById('setup-name').value;
+        if(!name) return alert("Bitte Namen eingeben");
+        
+        await db.collection('users').doc(currentUser.uid).set({
+            uid: currentUser.uid,
+            email: currentUser.email,
+            name: name,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Neu laden um in Main Screen zu kommen
+        window.location.reload();
+    }
+
+    // --- UI STEUERUNG ---
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
@@ -227,50 +272,60 @@
         document.getElementById('overlay').style.display = 'none';
     }
 
-    function triggerFile() { document.getElementById('file-input').click(); }
-
-    // --- CHAT FUNKTIONEN ---
-    async function createGroup() {
-        const name = document.getElementById('new-group-name').value;
-        if(!name) return;
-        await db.collection('chats').add({ name, ts: Date.now() });
-        document.getElementById('new-group-name').value = "";
-        closeAll();
+    function requestPushPermissions() {
+        alert("Push-Benachrichtigungen müssen in einem Service-Worker (firebase-messaging-sw.js) eingerichtet werden. Dies ist der nächste Schritt!");
     }
 
+    // --- CHAT LOGIK ---
     function loadChats() {
-        db.collection('chats').orderBy('ts', 'desc').onSnapshot(snap => {
-            const container = document.getElementById('chat-list');
-            container.innerHTML = "";
-            
-            renderChatItem("global", "Globaler Chat", "G"); // Standard Chat
+        // Lädt den Globalen Chat (für den Anfang)
+        const container = document.getElementById('chat-list');
+        container.innerHTML = "";
+        
+        const div = document.createElement('div');
+        div.className = "chat-item";
+        div.onclick = () => openChat("global", "Globaler Chat");
+        div.innerHTML = `
+            <div class="avatar">G</div>
+            <div class="chat-info">
+                <div class="top"><span class="name">Globaler Chat</span></div>
+                <div class="sub">Alle Nutzer</div>
+            </div>
+            <i class="fa fa-chevron-right" style="color:#ccc; font-size:14px;"></i>
+        `;
+        container.appendChild(div);
+    }
 
+    function showNewChatScreen() {
+        showScreen('screen-new-chat');
+        // Lädt alle registrierten Nutzer (Screenshot 5)
+        db.collection('users').get().then(snap => {
+            const container = document.getElementById('user-list');
+            container.innerHTML = "";
             snap.forEach(doc => {
-                const c = doc.data();
-                renderChatItem(doc.id, c.name, c.name[0].toUpperCase());
+                const u = doc.data();
+                if(u.uid === currentUser.uid) return; // Sich selbst nicht anzeigen
+                
+                const div = document.createElement('div');
+                div.className = "chat-item";
+                div.innerHTML = `
+                    <div class="avatar" style="width:40px; height:40px; background:#e2e2e2; color:#555;"><i class="fa fa-user"></i></div>
+                    <div class="chat-info">
+                        <div class="name">${u.name}</div>
+                        <div class="sub">Nutzer/in</div>
+                    </div>
+                    <i class="fa fa-chevron-right" style="color:#ccc; font-size:14px;"></i>
+                `;
+                // Klick erstellt zukünftig den Privat-Chat
+                div.onclick = () => alert("Private Chats folgen im nächsten Schritt! Klicke auf 'Globaler Chat' im Hauptmenü.");
+                container.appendChild(div);
             });
         });
     }
 
-    function renderChatItem(id, name, init) {
-        const div = document.createElement('div');
-        div.className = "chat-item";
-        div.onclick = () => openChat(id, name);
-        div.innerHTML = `
-            <div class="avatar">${init}</div>
-            <div class="chat-info">
-                <div class="top"><span>${name}</span><span style="color:#8e8e93; font-weight:400; font-size:12px;">Jetzt</span></div>
-                <div class="sub">Messenger <i class="fa fa-chevron-down" style="font-size:10px;"></i></div>
-                <div class="msg">Tippe um zu schreiben...</div>
-            </div>
-            <i class="fa fa-chevron-right" style="color:#ccc; font-size:14px;"></i>
-        `;
-        document.getElementById('chat-list').appendChild(div);
-    }
-
     let unsubMsgs = null;
     function openChat(id, name) {
-        activeChat = id;
+        activeChatId = id;
         document.getElementById('chat-name').innerText = name;
         document.getElementById('chat-avatar').innerText = name[0].toUpperCase();
         showScreen('screen-chat');
@@ -281,27 +336,24 @@
             container.innerHTML = "";
             snap.forEach(doc => {
                 const m = doc.data();
-                const isMe = m.uid === user.uid;
-                const isVerified = m.email === ADMIN_EMAIL;
+                const isMe = m.uid === currentUser.uid;
+                const isAdmin = m.email === ADMIN_EMAIL;
                 
                 const div = document.createElement('div');
-                if(isMe) {
-                    div.className = "sent-bubble";
-                    div.innerHTML = m.img ? `<img src="${m.img}" style="width:100%; border-radius:10px;">` : m.text;
-                } else {
-                    div.className = "news-card";
-                    div.innerHTML = `
-                        <div class="news-header">
-                            <span>${m.sender}</span>
-                            ${isVerified ? `<img src="${ROBLOX_BADGE}" class="verify-badge">` : ""}
-                        </div>
-                        <div class="news-content">
-                            ${m.text || ""}
-                            ${m.img ? `<img src="${m.img}" style="width:100%; border-radius:10px; margin-top:10px;">` : ""}
-                        </div>
-                        <button class="news-btn">Details anzeigen</button>
-                    `;
+                div.className = `bubble ${isMe ? 'bubble-me' : 'bubble-other'}`;
+                
+                let content = "";
+                if(!isMe) {
+                    content += `<div class="bubble-header">
+                        ${m.senderName} 
+                        ${isAdmin ? `<img src="${ROBLOX_BADGE}" class="verify-badge">` : ""}
+                    </div>`;
                 }
+                
+                if(m.text) content += m.text;
+                if(m.img) content += `<img src="${m.img}">`;
+                
+                div.innerHTML = content;
                 container.appendChild(div);
             });
             container.scrollTop = container.scrollHeight;
@@ -314,36 +366,37 @@
         const text = inp.value;
         inp.value = "";
         
-        await db.collection('chats').doc(activeChat).collection('msgs').add({
-            uid: user.uid,
-            sender: user.displayName || user.email.split('@')[0],
-            email: user.email,
+        await db.collection('chats').doc(activeChatId).collection('msgs').add({
+            uid: currentUser.uid,
+            email: currentUser.email,
+            senderName: userProfileData.name, // Nutzt jetzt den echten Namen
             text: text,
             ts: firebase.firestore.FieldValue.serverTimestamp()
         });
     }
 
+    function triggerFile() { document.getElementById('file-input').click(); }
+    
     async function uploadImg(input) {
         const file = input.files[0];
         if(!file) return;
+        closeAll();
         
         const formData = new FormData();
         formData.append("image", file);
         
-        closeAll();
         try {
             const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: formData });
             const data = await res.json();
-            const url = data.data.url;
-
-            await db.collection('chats').doc(activeChat).collection('msgs').add({
-                uid: user.uid,
-                sender: user.displayName || user.email.split('@')[0],
-                email: user.email,
-                img: url,
+            
+            await db.collection('chats').doc(activeChatId).collection('msgs').add({
+                uid: currentUser.uid,
+                email: currentUser.email,
+                senderName: userProfileData.name,
+                img: data.data.url,
                 ts: firebase.firestore.FieldValue.serverTimestamp()
             });
-        } catch(e) { alert("Upload-Fehler"); }
+        } catch(e) { alert("Fehler beim Hochladen des Bildes."); }
     }
 </script>
 </body>
