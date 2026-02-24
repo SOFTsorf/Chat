@@ -85,7 +85,7 @@
         .send-btn { color: var(--sdui-red); font-size: 18px; cursor: pointer; padding: 5px; display: none; }
         .input-box:focus + .send-btn, .input-box:not(:placeholder-shown) + .send-btn { display: block; }
 
-        /* ACTION MODAL (Screenshot 4) */
+        /* ACTION MODAL */
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; z-index: 100; }
         .action-modal { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%) scale(0.9); width: 90%; background: white; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: 0.2s ease-out; z-index: 101; padding: 20px; opacity: 0; pointer-events: none;}
         .action-modal.active { transform: translateX(-50%) scale(1); opacity: 1; pointer-events: all;}
@@ -243,7 +243,14 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
-    const messaging = firebase.messaging();
+    
+    // Sicherstellen, dass Messaging nicht die ganze App crasht, falls es nicht unterstützt wird
+    let messaging = null;
+    try {
+        if (firebase.messaging.isSupported()) {
+            messaging = firebase.messaging();
+        }
+    } catch(e) { console.warn("Messaging nicht unterstützt in dieser Umgebung.", e); }
 
     let currentUser = null;
     let userProfileData = null;
@@ -253,14 +260,18 @@
     auth.onAuthStateChanged(async (u) => {
         if(u) { 
             currentUser = u;
-            const userDoc = await db.collection('users').doc(u.uid).get();
-            if(!userDoc.exists) {
-                showScreen('screen-setup');
-            } else {
-                userProfileData = userDoc.data();
-                showScreen('screen-main');
-                loadChats();
-                checkNotificationStatus();
+            try {
+                const userDoc = await db.collection('users').doc(u.uid).get();
+                if(!userDoc.exists) {
+                    showScreen('screen-setup');
+                } else {
+                    userProfileData = userDoc.data();
+                    showScreen('screen-main');
+                    loadChats();
+                    checkNotificationStatus();
+                }
+            } catch(e) {
+                console.error("Fehler beim Laden der Nutzerdaten. Hast du die Firestore-Regeln angepasst?", e);
             }
         } else { 
             showScreen('screen-login'); 
@@ -318,9 +329,8 @@
             name: name,
             avatar: avatarUrl || "",
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true }); // merge: true um bestehende Daten nicht zu überschreiben falls vorhanden
+        }, { merge: true }); 
         
-        // Nach dem Speichern Nutzerdaten neu laden und zum Hauptbildschirm
         const userDoc = await db.collection('users').doc(currentUser.uid).get();
         userProfileData = userDoc.data();
         showScreen('screen-main');
@@ -331,16 +341,16 @@
     // --- PUSH BENACHRICHTIGUNGEN ---
     function checkNotificationStatus() {
         const bellIcon = document.getElementById('bell-icon');
-        if (Notification.permission === 'granted') {
+        if (window.Notification && Notification.permission === 'granted') {
             bellIcon.classList.remove('fa-regular');
             bellIcon.classList.add('fa-solid');
-            // Optional: Ein kleiner Haken als Overlay
             bellIcon.innerHTML = '<span style="position:absolute; top:-2px; right:-2px; background:var(--sdui-red); color:white; font-size:10px; border-radius:50%; width:12px; height:12px; display:flex; align-items:center; justify-content:center; font-family:sans-serif;">✓</span>';
             bellIcon.style.position = 'relative';
         }
     }
 
     async function requestPushPermissions() {
+        if (!messaging) return alert("Push wird hier nicht unterstützt.");
         if (Notification.permission === 'granted') {
             alert("Push-Benachrichtigungen sind bereits aktiv!");
             return;
@@ -352,7 +362,7 @@
                 if (token) {
                     await db.collection('users').doc(currentUser.uid).update({ fcmToken: token });
                     checkNotificationStatus();
-                    alert("Push aktiviert! Hinweis: Damit Benachrichtigungen ankommen, wird ein Backend (z.B. Firebase Cloud Functions) benötigt, das die Nachrichten versendet.");
+                    alert("Push aktiviert!");
                 }
             } else {
                 alert("Erlaubnis für Benachrichtigungen verweigert.");
@@ -375,7 +385,6 @@
         document.getElementById('main-dropdown').classList.toggle('active');
     }
 
-    // Klick außerhalb des Dropdowns schließt es
     document.addEventListener('click', function(event) {
         const dropdown = document.getElementById('main-dropdown');
         const isClickInside = dropdown.contains(event.target) || event.target.classList.contains('fa-bars');
@@ -405,25 +414,30 @@
     function loadChats() {
         const container = document.getElementById('chat-list');
         
-        // Echtzeit-Update für Chats, an denen der Nutzer teilnimmt
+        // FIX: Keine automatische Firebase-Sortierung (orderBy), um den "Missing Index"-Fehler zu vermeiden!
         db.collection('chats')
           .where('participants', 'array-contains', currentUser.uid)
-          .orderBy('lastUpdated', 'desc')
           .onSnapshot(snap => {
             container.innerHTML = "";
-            // Globaler Chat immer zuerst
             renderChatItem("global", "Globaler Chat", "", "Alle Nutzer");
 
-            snap.forEach(doc => {
-                const c = doc.data();
-                // Finde den ANDEREN Nutzer im Chat
+            let chats = [];
+            snap.forEach(doc => chats.push({ id: doc.id, ...doc.data() }));
+
+            // Sortieren im Frontend (sicherer ohne komplexe Firebase-Indices)
+            chats.sort((a, b) => {
+                const timeA = a.lastUpdated ? a.lastUpdated.toMillis() : 0;
+                const timeB = b.lastUpdated ? b.lastUpdated.toMillis() : 0;
+                return timeB - timeA;
+            });
+
+            chats.forEach(c => {
                 const otherUid = c.participants.find(id => id !== currentUser.uid);
                 const otherName = c.names[otherUid] || "Unbekannt";
                 const otherAvatar = c.avatars[otherUid] || "";
-                
-                renderChatItem(doc.id, otherName, otherAvatar, "Privater Chat");
+                renderChatItem(c.id, otherName, otherAvatar, "Privater Chat");
             });
-        });
+        }, error => console.error("Snapshot Error:", error));
     }
 
     function renderChatItem(id, name, avatarUrl, subText) {
@@ -431,13 +445,14 @@
         div.className = "chat-item";
         div.onclick = () => openChat(id, name, avatarUrl);
         
-        let avatarContent = avatarUrl ? `<img src="${avatarUrl}" style="width:100%; height:100%; object-fit:cover;">` : name[0].toUpperCase();
+        const safeName = name || "Unbekannt";
+        let avatarContent = avatarUrl ? `<img src="${avatarUrl}" style="width:100%; height:100%; object-fit:cover;">` : safeName[0].toUpperCase();
         if(id === "global") avatarContent = "G";
 
         div.innerHTML = `
             <div class="avatar">${avatarContent}</div>
             <div class="chat-info">
-                <div class="top"><span class="name">${name}</span></div>
+                <div class="top"><span class="name">${safeName}</span></div>
                 <div class="sub">${subText}</div>
             </div>
             <i class="fa-solid fa-chevron-down"></i>
@@ -452,66 +467,68 @@
             container.innerHTML = "";
             snap.forEach(doc => {
                 const u = doc.data();
-                if(u.uid === currentUser.uid) return; // Sich selbst nicht anzeigen
+                if(u.uid === currentUser.uid) return; 
+                
+                // FIX: Absturz verhindern, wenn Nutzerprofil nicht vollständig ist
+                const safeName = u.name || "Unbekannt";
                 
                 const div = document.createElement('div');
                 div.className = "chat-item";
-                let avatarContent = u.avatar ? `<img src="${u.avatar}" style="width:100%; height:100%; object-fit:cover;">` : u.name[0].toUpperCase();
+                let avatarContent = u.avatar ? `<img src="${u.avatar}" style="width:100%; height:100%; object-fit:cover;">` : safeName[0].toUpperCase();
                 
                 div.innerHTML = `
                     <div class="avatar">${avatarContent}</div>
                     <div class="chat-info">
-                        <div class="name">${u.name}</div>
+                        <div class="name">${safeName}</div>
                         <div class="sub">Tippen, um Chat zu starten</div>
                     </div>
                 `;
-                // Beim Klick wird der Chat direkt gestartet/geöffnet
-                div.onclick = () => startPrivateChat(u.uid, u.name, u.avatar);
+                div.onclick = () => startPrivateChat(u.uid, safeName, u.avatar);
                 container.appendChild(div);
             });
         });
     }
 
     async function startPrivateChat(otherUid, otherName, otherAvatar) {
-        // Generiert eine eindeutige ID für den Chat basierend auf den UIDs
         const uids = [currentUser.uid, otherUid].sort();
         const chatId = uids.join('_');
         const chatRef = db.collection('chats').doc(chatId);
         
-        // Prüfen, ob der Chat schon existiert, wenn nicht, erstellen
-        const doc = await chatRef.get();
-        if (!doc.exists) {
-            await chatRef.set({
-                participants: uids,
-                names: {
-                    [currentUser.uid]: userProfileData.name,
-                    [otherUid]: otherName
-                },
-                avatars: {
-                    [currentUser.uid]: userProfileData.avatar || "",
-                    [otherUid]: otherAvatar || ""
-                },
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-            });
+        try {
+            const doc = await chatRef.get();
+            if (!doc.exists) {
+                await chatRef.set({
+                    participants: uids,
+                    names: {
+                        [currentUser.uid]: userProfileData.name || "Ich",
+                        [otherUid]: otherName || "Unbekannt"
+                    },
+                    avatars: {
+                        [currentUser.uid]: userProfileData.avatar || "",
+                        [otherUid]: otherAvatar || ""
+                    },
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+            openChat(chatId, otherName, otherAvatar);
+        } catch(e) {
+            console.error("Fehler beim Starten des Chats. Firestore Regeln prüfen!", e);
         }
-        // Chat öffnen
-        openChat(chatId, otherName, otherAvatar);
     }
 
     let unsubMsgs = null;
     function openChat(id, name, avatarUrl) {
         activeChatId = id;
-        document.getElementById('chat-name').innerText = name;
+        const safeName = name || "Unbekannt";
+        document.getElementById('chat-name').innerText = safeName;
         
-        let avatarContent = avatarUrl ? `<img src="${avatarUrl}" style="width:100%; height:100%; object-fit:cover;">` : (name ? name[0].toUpperCase() : "?");
+        let avatarContent = avatarUrl ? `<img src="${avatarUrl}" style="width:100%; height:100%; object-fit:cover;">` : safeName[0].toUpperCase();
         if(id === 'global') avatarContent = 'G';
         document.getElementById('chat-avatar').innerHTML = avatarContent;
         
         showScreen('screen-chat');
 
-        // Vorherigen Listener beenden, falls vorhanden
         if(unsubMsgs) unsubMsgs();
-        // Echtzeit-Listener für Nachrichten im aktuellen Chat
         unsubMsgs = db.collection('chats').doc(id).collection('msgs').orderBy('ts', 'asc').onSnapshot(snap => {
             const container = document.getElementById('msg-container');
             container.innerHTML = "";
@@ -524,21 +541,19 @@
                 div.className = `bubble ${isMe ? 'bubble-me' : 'bubble-other'}`;
                 
                 let content = "";
-                // Absender-Name nur anzeigen, wenn es nicht man selbst ist
                 if(!isMe) {
                     content += `<div class="bubble-header">
-                        ${m.senderName} 
+                        ${m.senderName || "Unbekannt"} 
                         ${isAdmin ? `<img src="${ROBLOX_BADGE}" class="verify-badge" alt="Verifiziert">` : ""}
                     </div>`;
                 }
                 
-                if(m.text) content += m.text;
+                if(m.text) content += `<div>${m.text}</div>`;
                 if(m.img) content += `<img src="${m.img}">`;
                 
                 div.innerHTML = content;
                 container.appendChild(div);
             });
-            // Automatisch nach unten scrollen
             container.scrollTop = container.scrollHeight;
         });
     }
@@ -552,20 +567,19 @@
         const payload = {
             uid: currentUser.uid,
             email: currentUser.email,
-            senderName: userProfileData.name,
+            senderName: userProfileData.name || "Unbekannt",
             text: text,
             ts: firebase.firestore.FieldValue.serverTimestamp()
         };
 
-        // Nachricht in die Sub-Collection 'msgs' des aktuellen Chats einfügen
-        await db.collection('chats').doc(activeChatId).collection('msgs').add(payload);
-        // Zeitstempel des Chats aktualisieren, damit er in der Liste nach oben rutscht (außer Global)
-        if(activeChatId !== 'global') {
-            await db.collection('chats').doc(activeChatId).update({ lastUpdated: firebase.firestore.FieldValue.serverTimestamp() });
-        }
+        try {
+            await db.collection('chats').doc(activeChatId).collection('msgs').add(payload);
+            if(activeChatId !== 'global') {
+                await db.collection('chats').doc(activeChatId).update({ lastUpdated: firebase.firestore.FieldValue.serverTimestamp() });
+            }
+        } catch(e) { console.error("Nachricht konnte nicht gesendet werden.", e); }
     }
 
-    // Nachricht mit Enter senden
     document.getElementById("msg-input").addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
             event.preventDefault();
@@ -576,21 +590,19 @@
     async function uploadChatImg(input) {
         const file = input.files[0];
         if(!file) return;
-        closeAll(); // Modal schließen
+        closeAll(); 
         
         const formData = new FormData();
         formData.append("image", file);
         
-        // Bild zu ImgBB hochladen
         try {
             const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: formData });
             const data = await res.json();
             
-            // Bild-URL als Nachricht speichern
             await db.collection('chats').doc(activeChatId).collection('msgs').add({
                 uid: currentUser.uid,
                 email: currentUser.email,
-                senderName: userProfileData.name,
+                senderName: userProfileData.name || "Unbekannt",
                 img: data.data.url,
                 ts: firebase.firestore.FieldValue.serverTimestamp()
             });
