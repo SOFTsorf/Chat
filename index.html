@@ -22,6 +22,8 @@
             --border: #e5e5ea;
             --blue-avatar: #3a71a9;
             --green-avatar: #4a7c59;
+            --alert-bg: #fcece3;
+            --alert-text: #c45620;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -46,24 +48,25 @@
         .dropdown-wrapper { position: relative; }
         .dropdown-menu { position: absolute; right: 0; top: 35px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 260px; display: none; flex-direction: column; z-index: 200; border: 1px solid var(--border); overflow: hidden;}
         .dropdown-menu.active { display: flex; }
-        .menu-item { display: flex; align-items: center; padding: 15px 20px; font-size: 15px; border-bottom: 1px solid var(--border); cursor: pointer; color: var(--text); }
+        .menu-item { display: flex; align-items: center; padding: 15px 20px; font-size: 15px; border-bottom: 1px solid var(--border); cursor: pointer; color: var(--text); background: white; transition: background 0.2s; }
+        .menu-item:hover { background: var(--gray-bg); }
         .menu-item:last-child { border-bottom: none; }
-        .menu-item i { width: 30px; color: var(--text); font-size: 18px; }
+        .menu-item i { width: 30px; color: var(--sdui-red); font-size: 18px; }
         .menu-item.danger { color: #A62C4D; }
-        .menu-item.danger i { color: #A62C4D; }
 
         /* SEARCH AREA */
         .search-area { padding: 0 20px 15px 20px; position: relative; display: flex; gap: 10px; align-items: center; }
         .search-box-container { flex: 1; position: relative; }
-        .search-box { width: 100%; background: var(--gray-bg); border-radius: 8px; padding: 10px 10px 10px 40px; border: 1px solid var(--border); font-size: 16px; outline: none; }
+        .search-box { width: 100%; background: var(--gray-bg); border-radius: 8px; padding: 10px 10px 10px 40px; border: 1px solid transparent; font-size: 16px; outline: none; transition: border 0.2s;}
+        .search-box:focus { border: 1px solid var(--border); }
         .search-box-container i.fa-search { position: absolute; left: 15px; top: 12px; color: #8e8e93; font-size: 14px; }
         .filter-icon { color: #888; font-size: 20px; cursor: pointer; padding: 5px; }
 
-        /* ALERT BANNER (Neuer Chat Screenshot) */
-        .alert-banner { background-color: #fcece3; color: #c45620; padding: 15px 20px; margin: 0 20px 15px 20px; border-radius: 8px; font-size: 14px; line-height: 1.4; }
+        /* ALERT BANNER */
+        .alert-banner { background-color: var(--alert-bg); color: var(--alert-text); padding: 15px 20px; margin: 0 20px 15px 20px; border-radius: 8px; font-size: 14px; line-height: 1.4; }
 
         /* CHAT LIST */
-        .chat-list { flex: 1; overflow-y: auto; position: relative; }
+        .chat-list { flex: 1; overflow-y: auto; position: relative; padding-bottom: 20px; }
         .chat-item { display: flex; padding: 12px 20px; border-bottom: 1px solid var(--border); align-items: center; cursor: pointer; transition: background 0.2s; position: relative;}
         .chat-item:active { background: var(--gray-bg); }
         .avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--blue-avatar); color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 500; margin-right: 15px; flex-shrink: 0; overflow: hidden; position: relative;}
@@ -79,13 +82,12 @@
         .chat-action-icon:hover { color: var(--text); }
 
         /* CHAT ITEM DROPDOWN MENU */
-        .chat-item-menu { position: absolute; right: 20px; top: 50px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); width: 280px; display: none; flex-direction: column; z-index: 100; border: 1px solid var(--border); }
+        .chat-item-menu { position: absolute; right: 40px; top: 40px; background: white; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); width: 280px; display: none; flex-direction: column; z-index: 100; border: 1px solid var(--border); }
         .chat-item-menu.active { display: flex; }
-        .chat-item-menu .menu-item i { color: var(--sdui-red); }
 
-        /* NEW CHAT USER ITEM (Screenshot Style) */
+        /* NEW CHAT USER ITEM */
         .user-item { padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; cursor: pointer; }
-        .user-item-avatar { width: 32px; height: 32px; background: #e5f0f9; color: var(--blue-avatar); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 14px; }
+        .user-item-avatar { width: 36px; height: 36px; background: #e5f0f9; color: var(--blue-avatar); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-size: 14px; font-weight: 600;}
         .user-item-info { flex: 1; }
         .user-item-name { font-size: 16px; color: var(--text); font-weight: 500;}
         .user-item-role { font-size: 13px; color: #8e8e93; }
@@ -93,17 +95,17 @@
 
         /* CHAT BUBBLES */
         #msg-container { flex: 1; overflow-y: auto; padding: 15px; background: #fff; display: flex; flex-direction: column; gap: 10px; }
-        .bubble { max-width: 80%; padding: 10px 15px; font-size: 15px; line-height: 1.4; word-wrap: break-word; }
+        .bubble { max-width: 80%; padding: 10px 15px; font-size: 15px; line-height: 1.4; word-wrap: break-word; position: relative;}
         .bubble-me { align-self: flex-end; background: var(--gray-bg); color: var(--text); border-radius: 15px 15px 4px 15px; }
         .bubble-other { align-self: flex-start; background: white; border: 1px solid var(--border); color: var(--text); border-radius: 15px 15px 15px 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .bubble-header { font-size: 12px; font-weight: 600; color: var(--sdui-red); margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
-        .verify-badge { width: 14px; height: 14px; }
+        .bubble-header { font-size: 12px; font-weight: 600; color: var(--sdui-red); margin-bottom: 4px; }
         .bubble img { width: 100%; border-radius: 8px; margin-top: 5px; }
         .msg-time { font-size: 11px; color: #8e8e93; text-align: right; margin-top: 5px; }
 
         /* CHAT INPUT AREA */
         .input-area { padding: 10px 15px 25px 15px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 12px; background: white; }
-        .input-box-wrapper { flex: 1; display: flex; align-items: center; background: var(--gray-bg); border-radius: 25px; border: 1px solid var(--sdui-red-light); padding: 5px 15px; gap: 10px; }
+        .input-box-wrapper { flex: 1; display: flex; align-items: center; background: var(--gray-bg); border-radius: 25px; border: 1px solid transparent; padding: 5px 15px; gap: 10px; transition: border 0.2s;}
+        .input-box-wrapper:focus-within { border: 1px solid var(--border); }
         .input-box { flex: 1; background: transparent; border: none; outline: none; font-size: 16px; padding: 8px 0; }
         .send-btn { color: var(--sdui-red); font-size: 18px; cursor: pointer; padding: 5px; display: none; }
         .input-box:focus + .send-btn, .input-box:not(:placeholder-shown) + .send-btn { display: block; }
@@ -118,43 +120,51 @@
         .action-modal .close-btn { width: 28px; height: 28px; background: var(--gray-bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #555; font-size: 14px; cursor: pointer; }
         
         .sdui-action-grid { display: flex; gap: 15px; justify-content: center; }
-        .sdui-action-btn { flex: 1; background: var(--sdui-red-light); color: var(--sdui-red); border: none; border-radius: 12px; padding: 20px 10px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; box-shadow: 0 2px 5px rgba(166, 44, 77, 0.05); transition: background 0.2s; }
-        .sdui-action-btn:active { opacity: 0.8; }
+        .sdui-action-btn { flex: 1; background: var(--sdui-red-light); color: var(--sdui-red); border: none; border-radius: 12px; padding: 20px 10px; font-size: 14px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; transition: opacity 0.2s; }
+        .sdui-action-btn:active { opacity: 0.7; }
         .sdui-action-btn i { font-size: 24px; }
 
         /* AUTH & SETUP */
-        .btn-primary { width: 100%; padding: 14px; background: var(--sdui-red); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .auth-container { padding: 30px; display: flex; flex-direction: column; justify-content: center; height: 100%; }
+        .btn-primary { width: 100%; padding: 14px; background: var(--sdui-red); color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 16px; cursor: pointer; margin-top: 10px; transition: opacity 0.2s;}
+        .btn-primary:active { opacity: 0.8; }
         .btn-google { width: 100%; padding: 14px; background: white; border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; font-weight: 500; margin-top: 15px; }
         .form-input { width: 100%; padding: 14px; margin-bottom: 10px; border-radius: 10px; border: 1px solid var(--border); font-size: 16px; background: var(--gray-bg); outline: none;}
         .form-input:focus { border-color: var(--sdui-red); }
         .avatar-upload-box { width: 80px; height: 80px; border-radius: 50%; background: var(--gray-bg); margin: 0 auto 20px auto; display: flex; align-items: center; justify-content: center; color: #888; font-size: 30px; cursor: pointer; overflow: hidden; border: 2px dashed #ccc; }
+        
+        .empty-state { text-align: center; padding: 40px 20px; color: #8e8e93; font-size: 15px; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <div id="screen-login" class="screen active" style="justify-content:center; padding: 30px;">
-        <h1 style="color:var(--sdui-red); font-size: 40px; margin-bottom: 10px; font-weight: 800; text-align: center;">Messenger</h1>
-        <p style="text-align: center; color: #666; margin-bottom: 30px;">Melde dich an, um fortzufahren</p>
-        <input type="email" id="auth-email" class="form-input" placeholder="E-Mail Adresse">
-        <input type="password" id="auth-pass" class="form-input" placeholder="Passwort">
-        <button class="btn-primary" onclick="loginEmail()">Anmelden / Registrieren</button>
-        <div style="text-align: center; margin: 20px 0; color:#888; font-size: 14px;">oder</div>
-        <button class="btn-google" onclick="loginGoogle()">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20" alt="Google Logo"> Mit Google anmelden
-        </button>
+    <div id="screen-login" class="screen">
+        <div class="auth-container">
+            <h1 style="color:var(--sdui-red); font-size: 40px; margin-bottom: 10px; font-weight: 800; text-align: center;">Messenger</h1>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">Melde dich an, um fortzufahren</p>
+            <input type="email" id="auth-email" class="form-input" placeholder="E-Mail Adresse">
+            <input type="password" id="auth-pass" class="form-input" placeholder="Passwort">
+            <button class="btn-primary" onclick="loginEmail()">Anmelden / Registrieren</button>
+            <div style="text-align: center; margin: 20px 0; color:#888; font-size: 14px;">oder</div>
+            <button class="btn-google" onclick="loginGoogle()">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="20" alt="Google Logo"> Mit Google anmelden
+            </button>
+        </div>
     </div>
 
-    <div id="screen-setup" class="screen" style="justify-content:center; padding: 30px;">
-        <h2 style="margin-bottom: 10px; text-align: center;">Profil einrichten</h2>
-        <p style="text-align: center; color: #666; margin-bottom: 20px;">Lade ein Bild hoch und gib deinen Namen ein.</p>
-        <div class="avatar-upload-box" onclick="document.getElementById('setup-avatar').click()" id="setup-avatar-preview">
-            <i class="fa fa-camera"></i>
+    <div id="screen-setup" class="screen">
+        <div class="auth-container">
+            <h2 style="margin-bottom: 10px; text-align: center;">Profil einrichten</h2>
+            <p style="text-align: center; color: #666; margin-bottom: 20px;">Lade ein Bild hoch und gib deinen Namen ein.</p>
+            <div class="avatar-upload-box" onclick="document.getElementById('setup-avatar').click()" id="setup-avatar-preview">
+                <i class="fa fa-camera"></i>
+            </div>
+            <input type="file" id="setup-avatar" hidden accept="image/*" onchange="previewAvatar(this)">
+            <input type="hidden" id="uploaded-avatar-url" value="">
+            <input type="text" id="setup-name" class="form-input" placeholder="Vor- und Nachname">
+            <button class="btn-primary" onclick="saveProfile()" id="save-profile-btn">Profil speichern</button>
         </div>
-        <input type="file" id="setup-avatar" hidden accept="image/*" onchange="previewAvatar(this)">
-        <input type="hidden" id="uploaded-avatar-url" value="">
-        <input type="text" id="setup-name" class="form-input" placeholder="Vor- und Nachname">
-        <button class="btn-primary" onclick="saveProfile()" id="save-profile-btn">Profil speichern</button>
     </div>
 
     <div id="screen-main" class="screen">
@@ -185,11 +195,13 @@
         <div class="search-area">
             <div class="search-box-container">
                 <i class="fa fa-search"></i>
-                <input type="text" class="search-box" placeholder="Suchen">
+                <input type="text" id="chat-search-input" class="search-box" placeholder="Suchen">
             </div>
             <i class="fa-solid fa-filter filter-icon"></i>
         </div>
-        <div id="chat-list" class="chat-list"></div>
+        <div id="chat-list" class="chat-list">
+            <div class="empty-state">Lade Chats...</div>
+        </div>
     </div>
 
     <div id="screen-new-chat" class="screen">
@@ -207,7 +219,7 @@
         <div class="search-area" style="padding-top: 0;">
             <div class="search-box-container">
                 <i class="fa fa-search"></i>
-                <input type="text" class="search-box" placeholder="Suchen">
+                <input type="text" id="user-search-input" class="search-box" placeholder="Suchen">
             </div>
         </div>
         <div id="user-list" class="chat-list"></div>
@@ -254,12 +266,16 @@
 </div>
 
 <script>
-    // --- SERVICE WORKER ---
+    // --- SERVICE WORKER & MESSAGING ---
     let swRegistration = null;
+    let messaging = null;
+
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
-            navigator.serviceWorker.register('/firebase-messaging-sw.js').then(function(registration) {
+            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+            .then(function(registration) {
                 swRegistration = registration;
+                console.log('SW Registration successful');
             }).catch(function(err) {
                 console.log('SW Registration failed:', err);
             });
@@ -276,14 +292,21 @@
         appId: "1:721582884449:web:9271dcef860f4f76d44c20"
     };
     const IMGBB_KEY = "1cb3871dd6829d7133f3285c289ffc0a";
-    const ADMIN_EMAIL = "boxenjob5@gmail.com";
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
     
-    let messaging = null;
-    try { if (firebase.messaging.isSupported()) messaging = firebase.messaging(); } catch(e) {}
+    try { 
+        if (firebase.messaging.isSupported()) {
+            messaging = firebase.messaging(); 
+            // Foreground Message Listener
+            messaging.onMessage((payload) => {
+                console.log("Nachricht im Vordergrund empfangen: ", payload);
+                // Optional: Hier könntest du einen kleinen In-App Toast anzeigen
+            });
+        }
+    } catch(e) { console.error("Messaging Fehler:", e); }
 
     let currentUser = null;
     let userProfileData = null;
@@ -303,7 +326,7 @@
                     loadChats();
                     checkNotificationStatus();
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { console.error("Fehler beim Laden des Profils:", e); }
         } else { 
             showScreen('screen-login'); 
         }
@@ -312,17 +335,17 @@
     async function loginEmail() {
         const e = document.getElementById('auth-email').value;
         const p = document.getElementById('auth-pass').value;
-        if(!e || !p) return alert("Bitte Daten eingeben");
+        if(!e || !p) return alert("Bitte E-Mail und Passwort eingeben");
         try { await auth.signInWithEmailAndPassword(e, p); }
         catch { 
             try { await auth.createUserWithEmailAndPassword(e, p); } 
-            catch(err) { alert(err.message); }
+            catch(err) { alert("Anmeldefehler: " + err.message); }
         }
     }
 
     function loginGoogle() {
         const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).catch(err => alert(err.message));
+        auth.signInWithPopup(provider).catch(err => alert("Google Anmeldefehler: " + err.message));
     }
 
     function logout() { auth.signOut(); }
@@ -338,21 +361,21 @@
             const data = await res.json();
             document.getElementById('uploaded-avatar-url').value = data.data.url;
             document.getElementById('setup-avatar-preview').innerHTML = `<img src="${data.data.url}">`;
-        } catch(e) {}
+        } catch(e) { alert("Bild-Upload fehlgeschlagen."); }
         document.getElementById('save-profile-btn').innerText = "Profil speichern";
     }
 
     async function saveProfile() {
         const name = document.getElementById('setup-name').value;
         const avatarUrl = document.getElementById('uploaded-avatar-url').value;
-        if(!name) return alert("Namen eingeben");
+        if(!name) return alert("Bitte einen Namen eingeben");
         
         await db.collection('users').doc(currentUser.uid).set({
             uid: currentUser.uid,
             email: currentUser.email,
             name: name,
             avatar: avatarUrl || "",
-            role: "Nutzer/in", // Standardrolle für Screenshot-Design
+            role: "Nutzer/in",
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true }); 
         
@@ -371,8 +394,10 @@
 
     function toggleMainDropdown(event) {
         event.stopPropagation();
+        const menu = document.getElementById('main-dropdown');
+        const isActive = menu.classList.contains('active');
         closeAllDropdowns();
-        document.getElementById('main-dropdown').classList.toggle('active');
+        if(!isActive) menu.classList.add('active');
     }
 
     function toggleChatMenu(event, id) {
@@ -409,6 +434,23 @@
         return date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
     }
 
+    // --- INTELLIGENTE SUCHE ---
+    document.getElementById('chat-search-input').addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('#chat-list .chat-item').forEach(item => {
+            const name = item.querySelector('.name').innerText.toLowerCase();
+            item.style.display = name.includes(term) ? 'flex' : 'none';
+        });
+    });
+
+    document.getElementById('user-search-input').addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        document.querySelectorAll('#user-list .user-item').forEach(item => {
+            const name = item.querySelector('.user-item-name').innerText.toLowerCase();
+            item.style.display = name.includes(term) ? 'flex' : 'none';
+        });
+    });
+
     // --- CHAT LISTE ---
     function loadChats() {
         const container = document.getElementById('chat-list');
@@ -416,11 +458,16 @@
         db.collection('chats')
           .where('participants', 'array-contains', currentUser.uid)
           .onSnapshot(snap => {
-            container.innerHTML = "";
+            if (snap.empty) {
+                container.innerHTML = `<div class="empty-state">Noch keine Chats vorhanden. Klicke auf das <b>+</b> um einen zu starten.</div>`;
+                return;
+            }
 
+            container.innerHTML = "";
             let chats = [];
             snap.forEach(doc => chats.push({ id: doc.id, ...doc.data() }));
 
+            // Sortierung: Neueste oben
             chats.sort((a, b) => {
                 const timeA = (a.lastUpdated && a.lastUpdated.toMillis) ? a.lastUpdated.toMillis() : 0;
                 const timeB = (b.lastUpdated && b.lastUpdated.toMillis) ? b.lastUpdated.toMillis() : 0;
@@ -433,11 +480,12 @@
                 const otherName = (c.names && c.names[otherUid]) ? c.names[otherUid] : "Unbekannt";
                 const otherAvatar = (c.avatars && c.avatars[otherUid]) ? c.avatars[otherUid] : "";
                 
-                // Extrahiere Initialen für Avatar
                 const initials = otherName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-                
-                renderChatItem(c.id, otherName, otherAvatar, initials, "Letzte Nachricht...", formatTime(c.lastUpdated));
+                renderChatItem(c.id, otherName, otherAvatar, initials, c.lastMessage || "Neuer Chat...", formatTime(c.lastUpdated));
             });
+        }, error => {
+            console.error("Fehler beim Laden der Chats:", error);
+            container.innerHTML = `<div class="empty-state">Fehler beim Laden.</div>`;
         });
     }
 
@@ -445,7 +493,6 @@
         const div = document.createElement('div');
         div.className = "chat-item";
         
-        // Avatar HTML
         let avatarContent = avatarUrl ? `<img src="${avatarUrl}">` : initials;
         
         div.innerHTML = `
@@ -472,9 +519,11 @@
         document.getElementById('chat-list').appendChild(div);
     }
 
-    // --- NEUER CHAT (Angepasst an Screenshot) ---
+    // --- NEUER CHAT ---
     function showNewChatScreen() {
         showScreen('screen-new-chat');
+        document.getElementById('user-search-input').value = ""; // Reset search
+        
         db.collection('users').get().then(snap => {
             const container = document.getElementById('user-list');
             container.innerHTML = "";
@@ -489,7 +538,7 @@
                 const div = document.createElement('div');
                 div.className = "user-item";
                 
-                let avatarContent = u.avatar ? `<img src="${u.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : `<i class="fa-solid fa-user"></i>`;
+                let avatarContent = u.avatar ? `<img src="${u.avatar}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : initials;
                 
                 div.innerHTML = `
                     <div class="user-item-avatar">${avatarContent}</div>
@@ -506,7 +555,6 @@
         });
     }
 
-    // --- CHAT STARTEN (Mit Fehler-Alert Fix) ---
     async function startPrivateChat(otherUid, otherName, otherAvatar) {
         if(!userProfileData) {
             alert("Dein Profil lädt noch, bitte kurz warten.");
@@ -530,7 +578,8 @@
                         [currentUser.uid]: userProfileData.avatar || "",
                         [otherUid]: otherAvatar || ""
                     },
-                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastMessage: "Neuer Chat erstellt"
                 });
             }
             openChat(chatId, otherName, otherAvatar);
@@ -563,16 +612,11 @@
                 div.className = `bubble ${isMe ? 'bubble-me' : 'bubble-other'}`;
                 
                 let content = "";
-                if(!isMe) {
-                    content += `<div class="bubble-header">${m.senderName || "Unbekannt"}</div>`;
-                }
-                
+                if(!isMe) content += `<div class="bubble-header">${m.senderName || "Unbekannt"}</div>`;
                 if(m.text) content += `<div>${m.text}</div>`;
                 if(m.img) content += `<img src="${m.img}">`;
                 
-                // Zeitstempel
                 content += `<div class="msg-time">${formatTime(m.ts)} ${isMe ? '✓✓' : ''}</div>`;
-                
                 div.innerHTML = content;
                 container.appendChild(div);
             });
@@ -585,16 +629,21 @@
         const inp = document.getElementById('msg-input');
         if(!inp.value.trim()) return;
         const text = inp.value;
-        inp.value = "";
+        inp.value = ""; // Sofortiges UI Feedback
         
         try {
+            const ts = firebase.firestore.FieldValue.serverTimestamp();
             await db.collection('chats').doc(activeChatId).collection('msgs').add({
                 uid: currentUser.uid,
                 senderName: userProfileData.name || "Unbekannt",
                 text: text,
-                ts: firebase.firestore.FieldValue.serverTimestamp()
+                ts: ts
             });
-            await db.collection('chats').doc(activeChatId).update({ lastUpdated: firebase.firestore.FieldValue.serverTimestamp() });
+            // Letzte Nachricht für die Übersicht aktualisieren
+            await db.collection('chats').doc(activeChatId).update({ 
+                lastUpdated: ts,
+                lastMessage: text
+            });
         } catch(e) { alert("Senden fehlgeschlagen: " + e.message); }
     }
 
@@ -612,27 +661,56 @@
             const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: formData });
             const data = await res.json();
             
+            const ts = firebase.firestore.FieldValue.serverTimestamp();
             await db.collection('chats').doc(activeChatId).collection('msgs').add({
                 uid: currentUser.uid,
                 senderName: userProfileData.name || "Unbekannt",
                 img: data.data.url,
-                ts: firebase.firestore.FieldValue.serverTimestamp()
+                ts: ts
             });
-            await db.collection('chats').doc(activeChatId).update({ lastUpdated: firebase.firestore.FieldValue.serverTimestamp() });
-        } catch(e) { alert("Fehler beim Hochladen."); }
+            await db.collection('chats').doc(activeChatId).update({ 
+                lastUpdated: ts,
+                lastMessage: "📷 Bild empfangen"
+            });
+        } catch(e) { alert("Fehler beim Hochladen des Bildes."); }
     }
 
-    // --- PUSH DUMMY ---
+    // --- PUSH BENACHRICHTIGUNGEN FIX ---
     function checkNotificationStatus() {
         const bell = document.getElementById('bell-icon');
         if (window.Notification && Notification.permission === 'granted') {
             bell.classList.replace('fa-regular', 'fa-solid');
         }
     }
+
     async function requestPushPermissions() {
-        if(window.Notification) {
-            const p = await Notification.requestPermission();
-            if(p==='granted') checkNotificationStatus();
+        if (!messaging) {
+            alert("Dein Browser unterstützt keine Firebase Push-Benachrichtigungen.");
+            return;
+        }
+
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission === 'granted') {
+                document.getElementById('bell-icon').classList.replace('fa-regular', 'fa-solid');
+                
+                // Token abrufen. HINWEIS: In Produktion benötigst du hier deinen VAPID Key!
+                // getToken({ vapidKey: 'DEIN_VAPID_KEY' })
+                const token = await messaging.getToken();
+                
+                if (token && currentUser) {
+                    await db.collection('users').doc(currentUser.uid).update({ fcmToken: token });
+                    console.log("FCM Token gespeichert:", token);
+                    alert("Benachrichtigungen sind nun aktiv!");
+                } else {
+                    console.warn("Konnte kein Token abrufen.");
+                }
+            } else {
+                alert("Du hast Benachrichtigungen blockiert. Ändere dies in deinen Browser-Einstellungen.");
+            }
+        } catch (error) {
+            console.error("Fehler bei Push-Berechtigung:", error);
+            alert("Fehler bei der Einrichtung der Benachrichtigungen. Siehe Konsole.");
         }
     }
 </script>
