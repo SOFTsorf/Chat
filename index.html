@@ -226,6 +226,19 @@
 </div>
 
 <script>
+    // --- SERVICE WORKER REGISTRIEREN (WICHTIG FÜR PUSH) ---
+    let swRegistration = null;
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/firebase-messaging-sw.js').then(function(registration) {
+                swRegistration = registration;
+                console.log('ServiceWorker erfolgreich registriert:', registration.scope);
+            }).catch(function(err) {
+                console.log('ServiceWorker Registrierung fehlgeschlagen:', err);
+            });
+        });
+    }
+
     // --- KONFIGURATION ---
     const firebaseConfig = {
         apiKey: "AIzaSyBtZhw5zd96zJ5WYArLoMaGbpPjxF_gRUk",
@@ -244,7 +257,6 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
     
-    // Sicherstellen, dass Messaging nicht die ganze App crasht, falls es nicht unterstützt wird
     let messaging = null;
     try {
         if (firebase.messaging.isSupported()) {
@@ -271,7 +283,7 @@
                     checkNotificationStatus();
                 }
             } catch(e) {
-                console.error("Fehler beim Laden der Nutzerdaten. Hast du die Firestore-Regeln angepasst?", e);
+                console.error("Fehler beim Laden der Nutzerdaten.", e);
             }
         } else { 
             showScreen('screen-login'); 
@@ -358,7 +370,8 @@
         try {
             const permission = await Notification.requestPermission();
             if (permission === 'granted') {
-                const token = await messaging.getToken();
+                // BUGFIX: Übergebe die Service Worker Registrierung
+                const token = await messaging.getToken({ serviceWorkerRegistration: swRegistration });
                 if (token) {
                     await db.collection('users').doc(currentUser.uid).update({ fcmToken: token });
                     checkNotificationStatus();
@@ -368,8 +381,8 @@
                 alert("Erlaubnis für Benachrichtigungen verweigert.");
             }
         } catch (error) {
-            console.error(error);
-            alert("Fehler bei der Push-Einrichtung.");
+            console.error("Fehler bei der Push-Einrichtung:", error);
+            alert("Fehler bei der Push-Einrichtung. Hast du den Service Worker im Root-Verzeichnis abgelegt?");
         }
     }
 
@@ -414,7 +427,6 @@
     function loadChats() {
         const container = document.getElementById('chat-list');
         
-        // FIX: Keine automatische Firebase-Sortierung (orderBy), um den "Missing Index"-Fehler zu vermeiden!
         db.collection('chats')
           .where('participants', 'array-contains', currentUser.uid)
           .onSnapshot(snap => {
@@ -424,17 +436,21 @@
             let chats = [];
             snap.forEach(doc => chats.push({ id: doc.id, ...doc.data() }));
 
-            // Sortieren im Frontend (sicherer ohne komplexe Firebase-Indices)
+            // BUGFIX: Sicheres Sortieren (verhindert Absturz, falls toMillis() null ist)
             chats.sort((a, b) => {
-                const timeA = a.lastUpdated ? a.lastUpdated.toMillis() : 0;
-                const timeB = b.lastUpdated ? b.lastUpdated.toMillis() : 0;
+                const timeA = (a.lastUpdated && a.lastUpdated.toMillis) ? a.lastUpdated.toMillis() : Date.now();
+                const timeB = (b.lastUpdated && b.lastUpdated.toMillis) ? b.lastUpdated.toMillis() : Date.now();
                 return timeB - timeA;
             });
 
             chats.forEach(c => {
+                // Absicherung für ungültige Chat-Dokumente
+                if (!c.participants) return;
+                
                 const otherUid = c.participants.find(id => id !== currentUser.uid);
-                const otherName = c.names[otherUid] || "Unbekannt";
-                const otherAvatar = c.avatars[otherUid] || "";
+                const otherName = (c.names && c.names[otherUid]) ? c.names[otherUid] : "Unbekannt";
+                const otherAvatar = (c.avatars && c.avatars[otherUid]) ? c.avatars[otherUid] : "";
+                
                 renderChatItem(c.id, otherName, otherAvatar, "Privater Chat");
             });
         }, error => console.error("Snapshot Error:", error));
@@ -469,7 +485,6 @@
                 const u = doc.data();
                 if(u.uid === currentUser.uid) return; 
                 
-                // FIX: Absturz verhindern, wenn Nutzerprofil nicht vollständig ist
                 const safeName = u.name || "Unbekannt";
                 
                 const div = document.createElement('div');
@@ -512,7 +527,7 @@
             }
             openChat(chatId, otherName, otherAvatar);
         } catch(e) {
-            console.error("Fehler beim Starten des Chats. Firestore Regeln prüfen!", e);
+            console.error("Fehler beim Starten des Chats.", e);
         }
     }
 
